@@ -17,7 +17,7 @@ library(ggh4x)
 setwd("/home/docker")
 
 ## source data =================================================================
-path <- "/home/docker/combined_ml_results/combined_results.csv"
+path <- "/home/docker/github/SCFA-Analysis/data/combined_results.csv"
 combined_results <- readr::read_csv(path) %>% janitor::clean_names()
 combined_results$dataset <- gsub(pattern = "_new_", replacement = "_", combined_results$dataset)
 combined_results$dataset <- gsub(pattern = "new_", replacement = "", combined_results$dataset)
@@ -72,3 +72,4 @@ combined_results_summary_mae %>% ggplot() +
         panel.grid.minor = element_blank(),
         panel.grid.major.x = element_blank()) + 
   labs(x = "", y = "mean MAE percent change from Null Model\n(lower is better)")
+

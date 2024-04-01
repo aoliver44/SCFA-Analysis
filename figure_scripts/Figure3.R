@@ -15,7 +15,7 @@ library(shapviz)
 setwd("/home/docker")
 
 ## source SCFA data ============================================================
-source("/home/docker/scripts/polished_scripts/pre_process_raw_scfas.R")
+source("/home/docker/github/SCFA-Analysis/figure_scripts/pre_process_raw_scfas.R")
 stool_vars <- readr::read_delim("/home/docker/data/FL100_stool_variables.txt") %>%
   dplyr::select(., subject_id, st_wt, fecal_calprotectin, StoolConsistencyClass, bristol_num)
 
