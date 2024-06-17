@@ -1,5 +1,5 @@
 ## Author: Andrew Oliver
-## Version: aoliver44/scfa_rsutdio:1.1
+## Version: aoliver44/scfa_rsutdio:1.1,latest
 ## Date: Mar 18, 2024
 
 ## base image to start with
@@ -8,8 +8,9 @@ FROM rocker/rstudio:4.2
 ## RENV version
 ENV RENV_VERSION=1.0.5
 
-# install some things that R needs
-RUN apt-get update && apt-get install -y libz-dev build-essential libcurl4-gnutls-dev libxml2-dev libssl-dev libxml2-dev libglpk-dev libnode-dev libv8-dev
+## install some things that R needs (for intel machines)
+## uncomment below if running intel machine
+#RUN apt-get update && apt-get install -y libz-dev build-essential libcurl4-gnutls-dev libxml2-dev libssl-dev libxml2-dev libglpk-dev libnode-dev libv8-dev
 
 RUN install2.r --error remotes
 RUN install2.r --error igraph networkD3

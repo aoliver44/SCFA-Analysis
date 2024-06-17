@@ -46,17 +46,19 @@ metaphlan$pathString <- gsub(pattern = "taxaTree/", replacement = "", x = metaph
 metaphlan$pathString <- gsub(pattern = "L4_/", replacement = "L4_unclassified/", x = metaphlan$pathString)
 metaphlan$pathString <- gsub(pattern = "L5_/", replacement = "L5_unclassified/", x = metaphlan$pathString)
 
-## change the taxonomy into a pattern that metacoder can use:
 metaphlan <- metaphlan %>%
   tidyr::separate(., col = pathString, into = c("kingdom", "phylum", "class", "order", "family", "genus"),
                   sep = "\\/", extra = "merge", remove = T)
+
 metaphlan$kingdom <- gsub(pattern = "L1_", replacement = "L1__", x = metaphlan$kingdom)
 metaphlan$phylum <- gsub(pattern = "L2_", replacement = "L2__", x = metaphlan$phylum)
 metaphlan$class <- gsub(pattern = "L3_", replacement = "L3__", x = metaphlan$class)
 metaphlan$order <- gsub(pattern = "L4_", replacement = "L4__", x = metaphlan$order)
 metaphlan$family <- gsub(pattern = "L5_", replacement = "L5__", x = metaphlan$family)
 metaphlan$genus <- paste0("L6__", metaphlan$genus)
+
 metaphlan$clade_name <- paste0(metaphlan$kingdom, "|", metaphlan$phylum, "|", metaphlan$class, "|", metaphlan$order, "|", metaphlan$family,"|", metaphlan$genus)
+
 metaphlan <- metaphlan %>% dplyr::select(., clade_name, 7:301)
 
 ## load in butyrate data
@@ -67,7 +69,7 @@ fecal_scfas <- fecal_scfas %>% dplyr::filter(., tertile %in% c(1,3)) %>%
 fecal_scfas$tertile <- factor(x = fecal_scfas$tertile, levels = c("low", "high"), ordered = T)
 metaphlan <- metaphlan %>% dplyr::select(., clade_name, dplyr::all_of(as.factor(new_samples)))
 
-## do the metacoder (just using the instructions from their tutorial online)
+## do the metacoder
 obj <- metacoder::parse_tax_data(metaphlan,
                                  class_cols = "clade_name", # the column that contains taxonomic information
                                  class_sep = "|", # The character used to separate taxa in the classification
@@ -104,7 +106,7 @@ plot4a <- obj %>%
 
 #View(merge(select(obj$data$tax_data, taxon_id, clade_name), obj$data$diff_table, by = "taxon_id"))
 
-## food tree ~ stacked barplot (get a stacked barplot of L2 potatos)
+## food tree ~ stacked barplot
 metaphlan <- read.delim("/home/docker/combined_ml_results/for_potatoes/new_butyrate_food_taxaHFE_raw_data.tsv", check.names = F)
 features_tree <- "L2_White_potatoes_and_Puerto_Rican_starchy_vegetables"
 metaphlan <- metaphlan %>% dplyr::filter(., grepl(pattern = features_tree, pathString))
@@ -119,18 +121,16 @@ metaphlan <- metaphlan %>%
 
 metaphlan <- metaphlan%>% dplyr::select(., class, 7:301) %>% reshape2::melt(., id.vars = "class") %>% dplyr::rename("class" = 1, "subject_id" = 2)
 
-## chose the 9 most abundant L3 categories to plot and group everything
-## else into a low abundant category
 plot_features <- metaphlan %>% 
   group_by(., class) %>% 
   summarise(., abund = mean(value)) %>% 
   arrange(desc(abund)) %>% 
   slice_head(., n = 9) %>% 
   pull(., class)
+
 metaphlan <- metaphlan %>% 
   mutate(., plot_feature = ifelse(class %in% plot_features, class, "zlow_abundant"))
 
-## plot!
 plot4b <- ggplot(metaphlan) + aes(x = "total_cohort", weight = value) + 
   geom_bar(aes(fill = plot_feature), position = position_fill()) + 
   scale_y_continuous(labels = scales::percent_format()) +
