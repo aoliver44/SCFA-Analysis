@@ -17,14 +17,43 @@ library(ggh4x)
 setwd("/home/docker")
 
 ## source data =================================================================
-path <- "/home/docker/github/SCFA-Analysis/data/combined_results.csv"
 path_lf <- "/home/docker/combined_ml_results/combined_results_lf.csv"
-combined_results <- readr::read_csv(path) %>% 
-  janitor::clean_names() %>% 
-  dplyr::mutate(program = "non_taxahfe") %>%
-  dplyr::filter(., !grepl("taxa", dataset))
-combined_results_lf <- readr::read_csv(path_lf) %>% janitor::clean_names()
-combined_results <- rbind(combined_results, combined_results_lf)
+combined_results <- readr::read_csv(path_lf) %>% janitor::clean_names()
+## make new column based on if taxaHFE, taxaHFE-ml or neither were run
+combined_results <- combined_results %>%
+  dplyr::mutate(., program = dplyr::case_when( 
+    grepl("_lf_", dataset) ~ "taxahfe-ml",
+    grepl("taxaHFE", dataset) ~ "taxahfe",
+    .default = "non-taxahfe"))
+
+## make an old name column before you make changes below, for the best seeds
+combined_results$old_name <- combined_results$dataset
+
+## taxahfe-ml dataset names need to match the taxahfe dataset names
+combined_results$dataset <- gsub(pattern = "taxahfe_acetate_lf_food", replacement = "acetate_food_taxaHFE", x = combined_results$dataset)
+combined_results$dataset <- gsub(pattern = "taxahfe_acetate_lf_microbe", replacement = "acetate_microbe_taxaHFE", x = combined_results$dataset)
+combined_results$dataset <- gsub(pattern = "taxahfe_acetate_lf_norm_ratio_dist_food", replacement = "acetate_norm_ratio_dist_food_taxaHFE", x = combined_results$dataset)
+combined_results$dataset <- gsub(pattern = "taxahfe_acetate_lf_norm_ratio_dist_microbe", replacement = "acetate_norm_ratio_dist_microbe_taxaHFE", x = combined_results$dataset)
+combined_results$dataset <- gsub(pattern = "taxahfe_new_butyrate_lf_food", replacement = "new_butyrate_food_taxaHFE", x = combined_results$dataset)
+combined_results$dataset <- gsub(pattern = "taxahfe_new_butyrate_lf_microbe", replacement = "new_butyrate_microbe_taxaHFE", x = combined_results$dataset)
+combined_results$dataset <- gsub(pattern = "taxahfe_new_butyrate_lf_norm_ratio_dist_food", replacement = "new_butyrate_norm_ratio_dist_food_taxaHFE", x = combined_results$dataset)
+combined_results$dataset <- gsub(pattern = "taxahfe_new_butyrate_lf_norm_ratio_dist_microbe", replacement = "new_butyrate_norm_ratio_dist_microbe_taxaHFE", x = combined_results$dataset)
+combined_results$dataset <- gsub(pattern = "taxahfe_p_acetic_acid_lf_nmol_food", replacement = "p_acetic_acid_nmol_food_taxaHFE", x = combined_results$dataset)
+combined_results$dataset <- gsub(pattern = "taxahfe_p_acetic_acid_lf_nmol_microbe", replacement = "p_acetic_acid_nmol_microbe_taxaHFE", x = combined_results$dataset)
+combined_results$dataset <- gsub(pattern = "taxahfe_p_butyric_acid_lf_nmol_food", replacement = "p_butyric_acid_nmol_food_taxaHFE", x = combined_results$dataset)
+combined_results$dataset <- gsub(pattern = "taxahfe_p_butyric_acid_lf_nmol_microbe", replacement = "p_butyric_acid_nmol_microbe_taxaHFE", x = combined_results$dataset)
+combined_results$dataset <- gsub(pattern = "taxahfe_p_propionic_acid_lf_nmol_food", replacement = "p_propionic_acid_nmol_food_taxaHFE", x = combined_results$dataset)
+combined_results$dataset <- gsub(pattern = "taxahfe_p_propionic_acid_lf_nmol_microbe", replacement = "p_propionic_acid_nmol_microbe_taxaHFE", x = combined_results$dataset)
+combined_results$dataset <- gsub(pattern = "taxahfe_propionate_lf_food", replacement = "propionate_food_taxaHFE", x = combined_results$dataset)
+combined_results$dataset <- gsub(pattern = "taxahfe_propionate_lf_microbe", replacement = "propionate_microbe_taxaHFE", x = combined_results$dataset)
+combined_results$dataset <- gsub(pattern = "taxahfe_propionate_lf_norm_ratio_dist_food", replacement = "propionate_norm_ratio_dist_food_taxaHFE", x = combined_results$dataset)
+combined_results$dataset <- gsub(pattern = "taxahfe_propionate_lf_norm_ratio_dist_microbe", replacement = "propionate_norm_ratio_dist_microbe_taxaHFE", x = combined_results$dataset)
+combined_results$dataset <- gsub(pattern = "taxahfe_p_scfa_lf_nmol_total_food", replacement = "p_scfa_nmol_total_food_taxaHFE", x = combined_results$dataset)
+combined_results$dataset <- gsub(pattern = "taxahfe_p_scfa_lf_nmol_total_microbe", replacement = "p_scfa_nmol_total_microbe_taxaHFE", x = combined_results$dataset)
+combined_results$dataset <- gsub(pattern = "taxahfe_total_scfa_lf_food", replacement = "total_scfa_food_taxaHFE", x = combined_results$dataset)
+combined_results$dataset <- gsub(pattern = "taxahfe_total_scfa_lf_microbe", replacement = "total_scfa_microbe_taxaHFE", x = combined_results$dataset)
+
+
 combined_results$dataset <- gsub(pattern = "_new_", replacement = "_", combined_results$dataset)
 combined_results$dataset <- gsub(pattern = "new_", replacement = "", combined_results$dataset)
 
@@ -124,4 +153,14 @@ ggplot() +
   labs(x = "", y = "mean MAE percent change from Null Model\n(lower is better)") +
   scale_fill_identity() +
   scale_linetype_manual("solid")
-  
+
+## get a list of best seeds:
+best_seeds <- combined_results %>% 
+  dplyr::filter(., metric == "mae") %>%
+  dplyr::group_by(., old_name) %>%
+  dplyr::arrange(., estimate) %>%
+  dplyr::slice(.,1) %>%
+  dplyr::select(., seed, old_name)
+
+## check and make sure you have 10 obs per dataset
+combined_results %>% dplyr::filter(., metric == "mae") %>% group_by(., dataset, scfa, overall_type, program) %>% tally() %>% View()
