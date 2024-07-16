@@ -107,3 +107,6 @@ fecal_scfas$acetate_norm_ratio_dist <- fecal_scfas$acetate_norm - 0.6
 fecal_scfas$butyrate_norm_ratio_dist <- fecal_scfas$butyrate_norm - 0.2
 fecal_scfas$propionate_norm_ratio_dist <- fecal_scfas$propionate_norm - 0.2
 
+## get rid of isobutyrate - further evidence makes it seem like it is not isobutyrate
+fecal_scfas <- fecal_scfas %>% dplyr::select(., -isobutyrate)
+
