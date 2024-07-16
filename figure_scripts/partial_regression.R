@@ -22,7 +22,7 @@ PartialCorrelationNew <- function(scfas, independent, df, remove_outliers=FALSE)
     
     covariates <- c("age", "sex.factor", "bmi")
   } else if (scfas == "fecal") {
-    scfa_list <- c("acetate","propionate", "butyrate", "isobutyrate", "total_scfa", "acetate_norm_ratio_dist", "propionate_norm_ratio_dist", "butyrate_norm_ratio_dist")
+    scfa_list <- c("acetate","propionate", "butyrate", "total_scfa", "acetate_norm_ratio_dist", "propionate_norm_ratio_dist", "butyrate_norm_ratio_dist")
     formula <- paste0("normalized ~ ", independent, " + as.numeric(bmi) + as.numeric(age) + as.factor(sex.factor) + as.numeric(st_wt) + as.numeric(bristol_num)")
     covariates <- c("age", "sex.factor", "bmi", "st_wt", "bristol_num")
   } else {
@@ -50,32 +50,37 @@ PartialCorrelationNew <- function(scfas, independent, df, remove_outliers=FALSE)
       
       df$normalized <- NULL
       set.seed(123)
-      df$normalized <- bestNormalize::bestNormalize(df[[scfa]], allow_orderNorm = F, k = 10, r = 10)$x.t
+      best_norm_base <- bestNormalize::bestNormalize(df[[scfa]], allow_orderNorm = F, k = 5, r = 10)
+      df$normalized <- best_norm_base$x.t
       rm(model)
       model <- lm(formula, data = df)
-      print(bestNormalize::bestNormalize(df[[scfa]], allow_orderNorm = F, k = 10, r = 10)$chosen_transform)
+      print(best_norm_base$chosen_transform)
       print(shapiro.test(resid(model))[2])
       
       if (unlist(shapiro.test(resid(model))[2]) < 0.05) {
         print("Trying Order Norm...")
         df$normalized <- NULL
         set.seed(123)
-        df$normalized <- bestNormalize::bestNormalize(df[[scfa]], allow_orderNorm = T, k = 10, r = 20)$x.t
+        best_norm_order <- bestNormalize::bestNormalize(df[[scfa]], allow_orderNorm = T, k = 5, r = 20)
+        df$normalized <- best_norm_order$x.t
         rm(model)
         model <- lm(formula, data = df)
-        print(bestNormalize::bestNormalize(df[[scfa]], allow_orderNorm = T, k = 10, r = 20)$chosen_transform)
+        print(best_norm_order$chosen_transform)
         print(shapiro.test(resid(model))[2])
         
-        if (unlist(shapiro.test(resid(model))[2]) < 0.05) {
-          print("Trying Lambert...")
-          df$normalized <- NULL
-          set.seed(123)
-          df$normalized <- bestNormalize::bestNormalize(df[[scfa]], allow_orderNorm = T, allow_lambert_s = T, allow_lambert_h = T, k = 10, r = 20)$x.t
-          rm(model)
-          model <- lm(formula, data = df)
-          print(bestNormalize::bestNormalize(df[[scfa]], allow_orderNorm = T, allow_lambert_s = T, allow_lambert_h = T, k = 10, r = 20)$chosen_transform)
-          print(shapiro.test(resid(model))[2])
-          }
+        ## could not for the life of me get this to reliably work on apple silicon
+        ## through docker image, emulating linux/amd64
+         # if (unlist(shapiro.test(resid(model))[2]) < 0.05) {
+         #   print("Trying Lambert...")
+         #   df$normalized <- NULL
+         #   set.seed(123)
+         #   best_norm_lamb <- bestNormalize::bestNormalize(df[[scfa]], allow_orderNorm = T, allow_lambert_s = T, allow_lambert_h = T, k = 3, r = 1)
+         #   df$normalized <- best_norm_lamb$x.t
+         #   rm(model)
+         #   model <- lm(formula, data = df)
+         #   print(best_norm_lamb$chosen_transform)
+         #   print(shapiro.test(resid(model))[2])
+         #   }
         } 
     } else { 
       print("No normalization needed") 
