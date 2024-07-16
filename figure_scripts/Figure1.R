@@ -25,8 +25,8 @@ source("/home/docker/github/SCFA-Analysis/figure_scripts/partial_regression.R")
 
 ## make plot 1A ================================================================
 plot1a <- fecal_scfas %>%
-  dplyr::select(., subject_id, acetate, propionate, butyrate, isobutyrate) %>%
-  dplyr::mutate(., new_total = (acetate + propionate + butyrate + isobutyrate)) %>%
+  dplyr::select(., subject_id, acetate, propionate, butyrate) %>%
+  dplyr::mutate(., new_total = (acetate + propionate + butyrate)) %>%
   reshape2::melt(., id.vars = c("subject_id", "new_total")) %>%
   ggplot() + aes(x = reorder(subject_id, -new_total) , weight = value) + 
   geom_bar(aes(fill = variable)) +
@@ -72,14 +72,14 @@ plot1b_inset <- scfa_plasma_dedup %>%
         axis.text = element_text(colour = "black")) +
   labs(x = "", y = " SCFA Abundance (nmol/mg)") 
 
-## make plot 1C ================================================================
-plot1c <- merge(fecal_scfas, scfa_plasma_dedup, by = "subject_id") %>% 
+## make plot 1D ================================================================
+plot1d <- merge(fecal_scfas, scfa_plasma_dedup, by = "subject_id") %>% 
   dplyr::select(., acetate, propionate, butyrate, 
                 p_acetic_acid_nmol, p_propionic_acid_nmol, 
                 p_butyric_acid_nmol, total_scfa,p_scfa_nmol_total) %>% 
   corrr::correlate(method = "pearson") %>% corrr::autoplot()
 
-## make plot 1D ================================================================
+## make plot 1E ================================================================
 ## fecal ph vs fecal scfas
 
 fecal_ph_fecal_scfa <- merge(readr::read_delim("/home/docker/data/FL100_stool_variables.txt"), 
@@ -96,7 +96,7 @@ partial_regression <- car::avPlots(model, main = paste("Total SCFAs vs. Fecal pH
 
 tmp_fecal_ph <- cor.test(partial_regression$`as.numeric(fecal_ph)`[,1], partial_regression$`as.numeric(fecal_ph)`[,2])
 
-plot1d <- ggplot(as.data.frame(partial_regression$`as.numeric(fecal_ph)`)) + 
+plot1e <- ggplot(as.data.frame(partial_regression$`as.numeric(fecal_ph)`)) + 
   aes(x = `as.numeric(fecal_ph)`, y = normalized) + 
   geom_point() + 
   geom_smooth(method = "lm", color = "purple", se = TRUE, linetype = "dashed") + 
@@ -104,12 +104,12 @@ plot1d <- ggplot(as.data.frame(partial_regression$`as.numeric(fecal_ph)`)) +
   theme(panel.grid.minor = element_blank(), axis.text = element_text(colour = "black")) +
   labs(x = "Fecal pH (normalized) | covariates", y = "Total SCFA (normalized) | covariates")
 
-## make plot 1E ================================================================
+## make plot 1C ================================================================
 fecal_scfas_anthro <- merge(anthropometrics, fecal_scfas, by = "subject_id")
 tmp_inner <- data.frame()
 tmp_outer <- data.frame()
 
-for (scfa in c("acetate","propionate", "butyrate", "isobutyrate")) {
+for (scfa in c("acetate","propionate", "butyrate")) {
   print(scfa)
   
   fecal_scfas_anthro$normalized <- bestNormalize::bestNormalize(fecal_scfas_anthro[[scfa]], allow_orderNorm = F, k = 10, r = 10)$x.t
@@ -144,8 +144,8 @@ for (scfa in c("acetate","propionate", "butyrate", "isobutyrate")) {
   print(df_anthro)
 }
 
-tmp_outer$scfa_name <- factor(x = tmp_outer$scfa_name, levels = c("acetate", "propionate", "butyrate", "isobutyrate"), ordered = T)
-plot1e_1 <- ggplot(subset(tmp_outer, tmp_outer$factor_name == "bmi")) + 
+tmp_outer$scfa_name <- factor(x = tmp_outer$scfa_name, levels = c("acetate", "propionate", "butyrate"), ordered = T)
+plot1c_1 <- ggplot(subset(tmp_outer, tmp_outer$factor_name == "bmi")) + 
   aes(x = normalized_factor, y = normalized_scfa) + 
   geom_point(aes(color = scfa_name), alpha = 0.1) + 
   geom_smooth(method = "lm", aes(color = scfa_name), se = FALSE) + 
@@ -153,7 +153,7 @@ plot1e_1 <- ggplot(subset(tmp_outer, tmp_outer$factor_name == "bmi")) +
   theme_bw() + 
   theme(panel.grid.minor = element_blank(), axis.text = element_text(colour = "black")) +
   labs(x = "BMI | age,sex", y = "Fecal SCFA (normalized)")
-plot1e_2 <- ggplot(subset(tmp_outer, tmp_outer$factor_name == "age")) + 
+plot1c_2 <- ggplot(subset(tmp_outer, tmp_outer$factor_name == "age")) + 
   aes(x = normalized_factor, y = normalized_scfa) + 
   geom_point(aes(color = scfa_name), alpha = 0.1, position = position_jitter()) + 
   geom_smooth(method = "lm", aes(color = scfa_name), se = FALSE) + 
@@ -161,7 +161,7 @@ plot1e_2 <- ggplot(subset(tmp_outer, tmp_outer$factor_name == "age")) +
   theme_bw() + 
   theme(panel.grid.minor = element_blank(), axis.text = element_text(colour = "black")) +
   labs(x = "AGE | bmi,sex", y = "Fecal SCFA (normalized)")
-plot1e_3 <- tmp_outer %>% dplyr::filter(., factor_name == "sex") %>%
+plot1c_3 <- tmp_outer %>% dplyr::filter(., factor_name == "sex") %>%
   dplyr::mutate(., sex_factor = ifelse(as.numeric(normalized_factor) > 0, "male", "female")) %>%
   ggplot() + 
   aes(x = sex_factor, y = normalized_scfa) + 
@@ -172,8 +172,8 @@ plot1e_3 <- tmp_outer %>% dplyr::filter(., factor_name == "sex") %>%
   labs(x = "SEX | bmi,age", y = "Fecal SCFA (normalized)")
 
 design <- "
-AADFGH
-BCEFGH
+AAEFGH
+BCEFGI
 "
 
-plot1a + plot1b + plot1b_inset + plot1c + plot1d + plot1e_1 + plot1e_2 + plot1e_3 + patchwork::plot_layout(design = design) + patchwork::plot_annotation(tag_levels = "A")
+plot1a + plot1b + plot1b_inset + plot1c_1 + plot1c_2 + plot1c_3 + plot1d + plot1e + patchwork::plot_layout(design = design) + patchwork::plot_annotation(tag_levels = c("A", "B", "C", "C", "C", "D", "E"))
