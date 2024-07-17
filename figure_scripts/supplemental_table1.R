@@ -68,7 +68,7 @@ supp_table1 <- data.frame(sex=c(rep("MALE", 9),  rep("FEMALE", 9)),
                           fecal_n=fecal_bin_n$n, 
                           plasma_n=plasma_bin_n$n)
 
-
+knitr::kable(supp_table1)
 
 
 
