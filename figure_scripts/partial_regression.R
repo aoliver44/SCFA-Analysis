@@ -3,7 +3,7 @@
 ## partial_regression.R: function to perform partial regressions for SCFA paper
 ## Author: Andrew Oliver
 ## Date: Feb 22, 2024
-## to run: singularity run -W `pwd` --bind `pwd`:/home/docker /share/lemaylab/aoliver/software/nutrition_tools.sif bash -c 'Rscript /home/docker/ML_script1.R'
+## to run: docker run --rm -it -p 8787:8787 -e PASSWORD=yourpasswordhere -v `pwd`:/home/docker scfa_analysis:latest
 
 ## load libraries
 library(dplyr)
@@ -50,7 +50,7 @@ PartialCorrelationNew <- function(scfas, independent, df, remove_outliers=FALSE)
       
       df$normalized <- NULL
       set.seed(123)
-      best_norm_base <- bestNormalize::bestNormalize(df[[scfa]], allow_orderNorm = F, k = 5, r = 10)
+      best_norm_base <- bestNormalize::bestNormalize(df[[scfa]], allow_orderNorm = F, k = 10, r = 10)
       df$normalized <- best_norm_base$x.t
       rm(model)
       model <- lm(formula, data = df)
@@ -61,7 +61,7 @@ PartialCorrelationNew <- function(scfas, independent, df, remove_outliers=FALSE)
         print("Trying Order Norm...")
         df$normalized <- NULL
         set.seed(123)
-        best_norm_order <- bestNormalize::bestNormalize(df[[scfa]], allow_orderNorm = T, k = 5, r = 20)
+        best_norm_order <- bestNormalize::bestNormalize(df[[scfa]], allow_orderNorm = T, k = 10, r = 10)
         df$normalized <- best_norm_order$x.t
         rm(model)
         model <- lm(formula, data = df)
