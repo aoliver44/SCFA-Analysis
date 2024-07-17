@@ -66,4 +66,7 @@ all_samples_inflammation_filtered <- all_samples_inflammation %>%
                 "Regression p-value" = "lm_p_value",
                 "N Individuals" = "n_ind",
                 "Tobit Estimate" = "tobit_estimate", 
-                "Tobit p-value" = "tobit_pvalue")
+                "Tobit p-value" = "tobit_pvalue") %>% 
+  dplyr::arrange(Type)
+
+knitr::kable(all_samples_inflammation_filtered)
