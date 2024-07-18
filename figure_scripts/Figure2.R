@@ -164,3 +164,15 @@ best_seeds <- combined_results %>%
 
 ## check and make sure you have 10 obs per dataset
 combined_results %>% dplyr::filter(., metric == "mae") %>% group_by(., dataset, scfa, overall_type, program) %>% tally() %>% View()
+
+## get coeffecient of variation for the MAE of the models
+cv <- function(x) 100*( sd(x)/mean(x))
+combined_results %>% filter(., metric == "mae", program != "taxahfe-ml") %>%
+  group_by(., dataset)%>%
+  summarise(cv= cv(estimate)) %>% summarize(., mean_cv = mean(cv), sd_cv =sd(cv))
+
+## null models CV
+combined_results %>% filter(., metric == "mae", program != "taxahfe-ml") %>%
+  group_by(., dataset)%>%
+  summarise(cv= cv(null_model_avg)) %>% summarize(., mean_cv = mean(cv), sd_cv =sd(cv))
+
