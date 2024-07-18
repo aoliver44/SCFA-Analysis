@@ -17,11 +17,11 @@ library(patchwork)
 setwd("/home/docker")
 
 ## source data =================================================================
-source("/home/docker/github/SCFA-Analysis/figure_scripts/pre_process_raw_scfas.R")
+source("/home/docker/figure_scripts/pre_process_raw_scfas.R")
 anthropometrics <- read.csv("/home/docker/data/FL100_age_sex_bmi.csv")
 
 ## wrangle data or source helper functions =====================================
-source("/home/docker/github/SCFA-Analysis/figure_scripts/partial_regression.R")
+source("/home/docker/figure_scripts/partial_regression.R")
 
 ## make plot 1A ================================================================
 plot1a <- fecal_scfas %>%
