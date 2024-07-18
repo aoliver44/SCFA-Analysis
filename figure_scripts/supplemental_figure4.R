@@ -30,10 +30,10 @@ inflammation_markers <- merge(readr::read_csv("/home/docker/data/CTSC24532USDAWH
   dplyr::mutate(., fecal_cal_cutoff = ifelse(fecal_calprotectin >= 100, "high", "low")) %>%
   reshape2::melt(., id.vars = c("subject_id", "fecal_cal_cutoff", "crp_bd1_cutoff")) %>%
   dplyr::filter(., variable %in% c("acetate","propionate", 
-                                   "new_butyrate", "new_isobutyrate", 
+                                   "butyrate", 
                                    "total_scfa", "acetate_norm_ratio_dist", 
                                    "propionate_norm_ratio_dist", 
-                                   "new_butyrate_norm_ratio_dist", "p_acetic_acid_nmol",
+                                   "butyrate_norm_ratio_dist", "p_acetic_acid_nmol",
                                    "p_propionic_acid_nmol", "p_butyric_acid_nmol", 
                                    "p_scfa_nmol_total")) 
 
@@ -41,8 +41,8 @@ inflammation_markers$fecal_cal_cutoff <- factor(x = inflammation_markers$fecal_c
 inflammation_markers$crp_bd1_cutoff <- factor(x = inflammation_markers$crp_bd1_cutoff, levels = c("low", "high"), ordered = T)
 inflammation_markers$variable <- factor(x = inflammation_markers$variable, levels = c("acetate", 
                                                                                       "acetate_norm_ratio_dist", "propionate", 
-                                                                                      "propionate_norm_ratio_dist", "new_butyrate", 
-                                                                                      "new_butyrate_norm_ratio_dist", "new_isobutyrate", 
+                                                                                      "propionate_norm_ratio_dist", "butyrate", 
+                                                                                      "butyrate_norm_ratio_dist", 
                                                                                       "total_scfa", "p_acetic_acid_nmol", "p_propionic_acid_nmol", "p_butyric_acid_nmol", "p_scfa_nmol_total"), ordered = T)
 inflammation_markers <- inflammation_markers %>%
   dplyr::mutate(overall_scfa = case_when(
@@ -50,9 +50,8 @@ inflammation_markers <- inflammation_markers %>%
     variable == "acetate_norm_ratio_dist" ~ 'fecal acetate',
     variable == "propionate" ~ 'fecal propionate',
     variable == "propionate_norm_ratio_dist" ~ 'fecal propionate',
-    variable == "new_butyrate" ~ 'fecal butyrate',
-    variable == "new_butyrate_norm_ratio_dist" ~ 'fecal butyrate',
-    variable == "new_isobutyrate" ~ 'fecal isobutyrate',
+    variable == "butyrate" ~ 'fecal butyrate',
+    variable == "butyrate_norm_ratio_dist" ~ 'fecal butyrate',
     variable == "total_scfa" ~ 'fecal total SCFAs',
     variable == "p_acetic_acid_nmol" ~ 'plasma acetate',
     variable == "p_propionic_acid_nmol" ~ 'plasma propionate',
@@ -61,15 +60,43 @@ inflammation_markers <- inflammation_markers %>%
     TRUE ~ 'what_is_this'      
   )
   )
+
+inflammation_markers <- inflammation_markers %>%
+  dplyr::mutate(twin_scfas = case_when(
+    variable == "acetate" ~ 'acetate',
+    variable == "acetate_norm_ratio_dist" ~ 'acetate',
+    variable == "propionate" ~ 'propionate',
+    variable == "propionate_norm_ratio_dist" ~ 'propionate',
+    variable == "butyrate" ~ 'butyrate',
+    variable == "butyrate_norm_ratio_dist" ~ 'butyrate',
+    variable == "total_scfa" ~ 'total_fecal',
+    variable == "p_acetic_acid_nmol" ~ 'acetate',
+    variable == "p_propionic_acid_nmol" ~ 'propionate',
+    variable == "p_butyric_acid_nmol" ~ 'butyrate',
+    variable == "p_scfa_nmol_total" ~ 'total_plasma',
+    TRUE ~ 'what_is_this'      
+  )
+  )
+
+inflammation_markers <- inflammation_markers %>%
+  dplyr::mutate(color_fills = case_when(
+    twin_scfas == "acetate" ~ '#0A9F9D',
+    twin_scfas == "propionate" ~ '#CEB175',
+    twin_scfas == "butyrate" ~ '#E54E21',
+    twin_scfas == "total_fecal" ~ '#634F25',
+    twin_scfas == "total_plasma" ~ '#D71515',
+    TRUE ~ 'what_is_this'      
+  )
+  )
+
 inflammation_markers <- inflammation_markers %>%
   dplyr::mutate(ratio_raw = case_when(
     variable == "acetate" ~ 'raw',
     variable == "acetate_norm_ratio_dist" ~ 'ratio',
     variable == "propionate" ~ 'raw',
     variable == "propionate_norm_ratio_dist" ~ 'ratio',
-    variable == "new_butyrate" ~ 'raw',
-    variable == "new_butyrate_norm_ratio_dist" ~ 'ratio',
-    variable == "new_isobutyrate" ~ 'raw',
+    variable == "butyrate" ~ 'raw',
+    variable == "butyrate_norm_ratio_dist" ~ 'ratio',
     variable == "total_scfa" ~ 'raw',
     variable == "p_acetic_acid_nmol" ~ 'raw',
     variable == "p_propionic_acid_nmol" ~ 'raw',
@@ -78,6 +105,9 @@ inflammation_markers <- inflammation_markers %>%
     TRUE ~ 'what_is_this'      
   )
   )
+
+inflammation_markers$twin_scfas <- factor(x = inflammation_markers$twin_scfas, levels = c("acetate","propionate","butyrate", "total_fecal","total_plasma"), ordered = T)
+
 
 inflammation_markers$ratio_raw <- factor(x = inflammation_markers$ratio_raw, levels = c("raw", "ratio"), ordered = T)
 
@@ -110,14 +140,19 @@ sup_figure4B <- inflammation_markers %>%
   ggplot() + 
   aes(x = crp_bd1_cutoff, y = value) +
   geom_point(position = position_jitter(width = 0.2), alpha = 0.4) + 
-  geom_boxplot(outlier.alpha = 0) + 
+  geom_boxplot(outlier.alpha = 0, aes(alpha = crp_bd1_cutoff, fill = twin_scfas)) + 
   facet_nested(.~ overall_scfa + ratio_raw, scales = "free", independent = "all") +
   ggpubr::stat_pwc(hjust = 0.5, vjust = 1, p.adjust.by = "panel") + 
   theme_bw() +
   theme(axis.text.x = element_text(angle = 90),
         panel.grid.major.y = element_blank(),
         panel.grid.major.x = element_blank(),
-        panel.background = element_blank())
+        panel.background = element_blank(),
+        legend.position = "none") +
+  scale_fill_manual(values = wesanderson::wes_palette("AsteroidCity1")) +
+  scale_alpha_manual(values = c(1, 0.4)) +
+  labs(x = "C-reactive protein", y = "SCFA abundance\n(raw: nmol/mg or ul, ratio: Δ expected ratio)")
+  
 
 ## make supp figure 4C =========================================================
 sup_figure4C <- inflammation_markers %>% 
@@ -125,14 +160,18 @@ sup_figure4C <- inflammation_markers %>%
   ggplot() + 
   aes(x = fecal_cal_cutoff, y = value) +
   geom_point(position = position_jitter(width = 0.2), alpha = 0.4) + 
-  geom_boxplot(outlier.alpha = 0) + 
+  geom_boxplot(outlier.alpha = 0, aes(alpha = fecal_cal_cutoff, fill = twin_scfas)) + 
   facet_nested(.~ overall_scfa + ratio_raw, scales = "free", independent = "all") +
   ggpubr::stat_pwc(hjust = 0.5, vjust = 1) + 
   theme_bw() +
   theme(axis.text.x = element_text(angle = 90),
         panel.grid.major.y = element_blank(),
         panel.grid.major.x = element_blank(),
-        panel.background = element_blank())
+        panel.background = element_blank(),
+        legend.position = "none") +
+  scale_fill_manual(values = wesanderson::wes_palette("AsteroidCity1")) +
+  scale_alpha_manual(values = c(1, 0.4)) +
+  labs(x = "Fecal calprotectin", y = "SCFA abundance\n(raw: nmol/mg or ul, ratio: Δ expected ratio)")
 
 
 design <- "A
