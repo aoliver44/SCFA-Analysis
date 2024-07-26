@@ -176,3 +176,6 @@ combined_results %>% filter(., metric == "mae", program != "taxahfe-ml") %>%
   group_by(., dataset)%>%
   summarise(cv= cv(null_model_avg)) %>% summarize(., mean_cv = mean(cv), sd_cv =sd(cv))
 
+## write raw ml results to file
+write.csv(combined_results, file = "/home/docker/plots/ml_results_for_publishing.csv", quote = F, row.names = F)
+
