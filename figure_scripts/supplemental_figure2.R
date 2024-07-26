@@ -86,7 +86,7 @@ butyrate_hei_ffq_no_inflam <- ggplot(as.data.frame(partial_regression_tmp$`as.nu
   geom_smooth(method = "lm", color = "red", se = F, linetype = "dashed") + 
   theme_bw() + 
   theme(panel.grid.minor = element_blank(), axis.text = element_text(colour = "black")) +
-  annotate("text", x = 15, y = -3, label= paste0("r = ", round(tmp_annotation_data$cor_estimate, 4), "\np = ", round(tmp_annotation_data$cor_p_value,4), "\np.adjust = 0.030")) +
+  annotate("text", x = 15, y = -3, label= paste0("r = ", round(tmp_annotation_data$cor_estimate, 4), "\np = ", round(tmp_annotation_data$cor_p_value,4), "\np.adjust = 0.064")) +
   labs(x = "HEI FFQ Totalscore (normalized) | covariates\nNo high inflammation individuals", y = paste0("Fecal butyrate-ratio (normalized)\n| covariates"))  
 
 set.seed(123)
@@ -131,7 +131,7 @@ butyrate_fiber_hei_asa <- ggplot(as.data.frame(partial_regression_tmp$`as.numeri
 
 set.seed(123)
 all_fiber_vars_scfa_prop <- all_fiber_vars_scfa %>% dplyr::filter(., p_propionic_acid_nmol != "NA") %>% dplyr::select(., p_propionic_acid_nmol, dt_fiber_sol, age, sex.factor, bmi) %>% tidyr::drop_na()
-all_fiber_vars_scfa_prop$p_propionic_acid_normalized <- bestNormalize::bestNormalize(all_fiber_vars_scfa_prop$p_propionic_acid_nmol, allow_orderNorm = F, k = 10, r = 10)$x.t
+all_fiber_vars_scfa_prop$p_propionic_acid_normalized <- bestNormalize::bestNormalize(all_fiber_vars_scfa_prop$p_propionic_acid_nmol, allow_orderNorm = T, k = 10, r = 10)$x.t
 print(bestNormalize::bestNormalize(all_fiber_vars_scfa_prop$p_propionic_acid_normalized, allow_orderNorm = T, k = 10, r = 10)$chosen_transform)
 
 tobit_model_minus_scfa <- VGAM::vglm(as.numeric(dt_fiber_sol) ~ as.numeric(bmi) + as.numeric(age) + as.factor(sex.factor), tobit(Lower = min(as.numeric(na.omit(all_fiber_vars_scfa_prop$p_propionic_acid_normalized)))), data = all_fiber_vars_scfa_prop)
