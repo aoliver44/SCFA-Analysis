@@ -88,7 +88,7 @@ PartialCorrelationNew <- function(scfas, independent, df, remove_outliers=FALSE)
     }
     
     partial_regression <- car::avPlots(model, main = paste(scfa, "vs.", independent))
-    assign(x = "partial_regression", value = partial_regression, envir = .GlobalEnv)
+    #assign(x = "partial_regression", value = partial_regression, envir = .GlobalEnv)
     cor_method = "pearson"
     
     tmp_factor <- cor.test(as.data.frame(partial_regression[1])[,1], as.data.frame(partial_regression[1])[,2], method = cor_method)
