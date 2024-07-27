@@ -10,6 +10,8 @@ setwd("/home/docker")
 
 ## source data =================================================================
 source("/home/docker/github/SCFA-Analysis/figure_scripts/pre_process_raw_scfas.R")
+source("/home/docker/github/SCFA-Analysis/figure_scripts/partial_regression.R")
+
 hei_ffq <- readr::read_csv("/home/docker/data/HEI FFQ_scores_12072021.csv") %>%
   dplyr::select(., subject_id, hei_ffq_totalscore)
 hei_asa <- readr::read_delim("/home/docker/data/FL100_HEI_n378.txt") %>%
