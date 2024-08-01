@@ -14,11 +14,13 @@ library(car)
 library(bestNormalize)
 
 ## set working directory =======================================================
-setwd("/home/docker")
+setwd("/home/")
 
 ## source SCFA data ============================================================
-source("/home/docker/github/SCFA-Analysis/figure_scripts/pre_process_raw_scfas.R")
-stool_vars <- readr::read_delim("/home/docker/data/FL100_stool_variables.txt") %>%
+source("/home/scripts/pre_process_raw_scfas.R")
+source("/home/scripts/partial_regression.R")
+
+stool_vars <- readr::read_delim("/home/data/FL100_stool_variables.txt") %>%
   dplyr::select(., subject_id, st_wt, fecal_calprotectin, StoolConsistencyClass, bristol_num)
 
 ## wrangle data or source helper functions =====================================
@@ -26,7 +28,7 @@ stool_vars <- readr::read_delim("/home/docker/data/FL100_stool_variables.txt") %
 # grab the samples you want based on the shap plot (highest 50 lowest 50 shap values)
 # this is to compare the L2 potato in the metacoder plot
 butyrate_ml_env <- new.env()
-load(file = "/home/docker/combined_ml_results/best_models/new_butyrate_food_taxaHFE/ML_r_workspace.rds", envir = butyrate_ml_env)
+load(file = "/home/data/new_butyrate_food_taxaHFE/ML_r_workspace.rds", envir = butyrate_ml_env)
 subject_id_df <- as.data.frame(butyrate_ml_env$input$subject_id)
 colnames(subject_id_df)[1] <- "subject_id"
 shap_values <- cbind(subject_id_df, butyrate_ml_env$sv_full$S)
@@ -38,7 +40,7 @@ new_samples <- c(high_shap, low_shap)
 
 ## load in food tree and format for metacoder
 ## loading in food tree that is seen by taxaHFE - fills out tree
-metaphlan <- read.delim("/home/docker/combined_ml_results/for_potatoes/new_butyrate_food_taxaHFE_raw_data.tsv", check.names = F)
+metaphlan <- read.delim("/home/data/new_butyrate_food_taxaHFE_raw_data.tsv", check.names = F)
 features_tree <- "L2_White_potatoes_and_Puerto_Rican_starchy_vegetables"
 metaphlan <- metaphlan %>% dplyr::filter(., grepl(pattern = features_tree, pathString))
 metaphlan <- metaphlan %>% dplyr::filter(., depth == 7) %>% dplyr::select(., pathString, 11:305)
@@ -107,7 +109,7 @@ plot4a <- obj %>%
 #View(merge(select(obj$data$tax_data, taxon_id, clade_name), obj$data$diff_table, by = "taxon_id"))
 
 ## food tree ~ stacked barplot
-metaphlan <- read.delim("/home/docker/combined_ml_results/for_potatoes/new_butyrate_food_taxaHFE_raw_data.tsv", check.names = F)
+metaphlan <- read.delim("/home/data/new_butyrate_food_taxaHFE_raw_data.tsv", check.names = F)
 features_tree <- "L2_White_potatoes_and_Puerto_Rican_starchy_vegetables"
 metaphlan <- metaphlan %>% dplyr::filter(., grepl(pattern = features_tree, pathString))
 metaphlan <- metaphlan %>% dplyr::filter(., depth == 7) %>% dplyr::select(., pathString, 11:305)
@@ -139,13 +141,12 @@ plot4b <- ggplot(metaphlan) + aes(x = "total_cohort", weight = value) +
 
 ## butyrate vs l2 potatoes partial regression
 butyrate_shap <- new.env()
-load(file = "/home/docker/combined_ml_results/best_models/new_butyrate_food_taxaHFE/ML_r_workspace.rds", envir = butyrate_shap)
+load(file = "/home/data/new_butyrate_food_taxaHFE/ML_r_workspace.rds", envir = butyrate_shap)
 
 butyrate_shap$input <- merge(butyrate_shap$input, dplyr::select(stool_vars, subject_id, bristol_num), by = "subject_id")
 
 set.seed(123)
 butyrate_shap$input$normalized <- bestNormalize::bestNormalize(butyrate_shap$input$label, allow_orderNorm = T, k = 10, r = 20)$x.t
-print(bestNormalize::bestNormalize(butyrate_shap$input$label, allow_orderNorm = T, k = 10, r = 20)$chosen_transform)
 
 model <- lm(normalized ~ as.numeric(l2_white_potatoes_and_puerto_rican_starchy_vegetables) + as.numeric(bmi) + as.numeric(age) + as.factor(sex_factor) + as.numeric(bristol_num) + as.numeric(st_wt), data = butyrate_shap$input)
 partial_regression <- car::avPlots(model)
@@ -167,3 +168,12 @@ AAAB
 AAAC"
 
 plot4a + plot4b + plot4c + patchwork::plot_layout(design = design) + patchwork::plot_annotation(tag_levels = "A")
+
+dir.create(path = "/home/scripts/output_figures", showWarnings = TRUE)
+ggsave(filename = "/home/scripts/output_figures/Figure4.png", 
+       device = "png",
+       width = 12, 
+       height = 7,
+       units = "in",
+       dpi = 400)
+ dev.off()

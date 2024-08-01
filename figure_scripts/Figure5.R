@@ -14,10 +14,10 @@ library(metacoder)
 
 
 ## set working directory =======================================================
-setwd("/home/docker")
+setwd("/home/")
 
 ## source SCFA data ============================================================
-source("/home/docker/scripts/polished_scripts/pre_process_raw_scfas.R")
+source("/home/scripts/pre_process_raw_scfas.R")
 
 ## wrangle data or source helper functions =====================================
 
@@ -25,7 +25,7 @@ source("/home/docker/scripts/polished_scripts/pre_process_raw_scfas.R")
 ##plot5a
 
 butyrate_micro_ml_env <- new.env()
-load(file = "/home/docker/combined_ml_results/best_models/new_butyrate_norm_ratio_dist_microbe_taxaHFE/ML_r_workspace.rds", envir = butyrate_micro_ml_env)
+load(file = "/home/data/new_butyrate_norm_ratio_dist_microbe_taxaHFE/ML_r_workspace.rds", envir = butyrate_micro_ml_env)
 
 sv_full <- shapviz::shapviz(butyrate_micro_ml_env$shap_explainations_full, X = butyrate_micro_ml_env$shap_data_full)
 
@@ -55,6 +55,7 @@ plot5a <- ggplot(all_data_melt) + aes(x = abundance, y = shap) +
   theme_bw(base_size = 14) +
   theme(
     panel.background = element_blank(),
+    legend.position = "bottom", legend.direction="vertical",
     panel.grid.minor = element_blank(),
     axis.text = element_text(color = "black")
   ) +
@@ -63,13 +64,11 @@ plot5a <- ggplot(all_data_melt) + aes(x = abundance, y = shap) +
 
 
 ## plot5b
-metaphlan <- read.delim("/home/docker/data/merged_metaphlan_v4-0-6.txt", check.names = F)
+metaphlan <- read.delim("/home/data/merged_metaphlan_v4-0-6.txt", check.names = F)
 features_tree <- "g__Roseburia|g__Lachnospiraceae_unclassified|f__Eubacteriales_unclassified|c__Firmicutes_unclassified"
 metaphlan <- metaphlan %>% dplyr::filter(., grepl("s__", clade_name)) %>% dplyr::filter(., !grepl("t__", clade_name))
 metaphlan <- metaphlan %>% dplyr::filter(., grepl(pattern = features_tree, clade_name))
 
-setwd("/home/docker")
-source("/home/docker/scripts/polished_scripts/pre_process_raw_scfas.R")
 fecal_scfas <- fecal_scfas %>% dplyr::filter(., subject_id %in% colnames(metaphlan))
 fecal_scfas <- fecal_scfas %>% dplyr::mutate(., tertile = ntile(butyrate_norm_ratio_dist, 3))
 fecal_scfas <- fecal_scfas %>% dplyr::filter(., tertile %in% c(1,3)) %>%
@@ -109,7 +108,7 @@ plot5b <- obj %>%
 
 ## plot5c
 butyrate_humann_ml_env <- new.env()
-load(file = "/home/docker/combined_ml_results/best_models/humann_pwys_fecal_new_butyrate_norm_ratio_dist/ML_r_workspace.rds", envir = butyrate_humann_ml_env)
+load(file = "/home/data/humann_pwys_fecal_new_butyrate_norm_ratio_dist/ML_r_workspace.rds", envir = butyrate_humann_ml_env)
 
 sv_full <- shapviz::shapviz(butyrate_humann_ml_env$shap_explainations_full, X = butyrate_humann_ml_env$shap_data_full)
 
@@ -141,6 +140,7 @@ plot5c <- ggplot(all_data_melt) + aes(x = abundance, y = shap) +
   theme_bw(base_size = 14) +
   theme(
     panel.background = element_blank(),
+    legend.position = "bottom", legend.direction="vertical",
     panel.grid.minor = element_blank(),
     axis.text = element_text(color = "black")
   ) +
@@ -149,9 +149,8 @@ plot5c <- ggplot(all_data_melt) + aes(x = abundance, y = shap) +
 
 ## make plot 5d
 ## load in humann data
-humann <- readr::read_delim("/home/docker/data/merged_pathabundance-cpm.tsv") %>%
+humann <- readr::read_delim("/home/data/merged_pathabundance-cpm.tsv") %>%
   dplyr::rename(., "pathway" = 1)
-source("/home/docker/scripts/polished_scripts/pre_process_raw_scfas.R")
 fecal_scfas <- fecal_scfas %>% dplyr::mutate(., tertile = ntile(butyrate_norm_ratio_dist, 3))
 fecal_scfas <- fecal_scfas %>% dplyr::filter(., tertile %in% c(1,3)) %>%
   dplyr::mutate(., tertile = ifelse(tertile == 1, "low", "high"))
@@ -201,3 +200,13 @@ AB
 CD"
 
 plot5a + plot5b + plot5c + plot5d + patchwork::plot_layout(design = design) + patchwork::plot_annotation(tag_levels = "A")
+
+dir.create(path = "/home/scripts/output_figures", showWarnings = TRUE)
+ggsave(filename = "/home/scripts/output_figures/Figure5.png", 
+       device = "png",
+       width = 14, 
+       height = 14,
+       units = "in",
+       dpi = 400)
+ dev.off()
+ 

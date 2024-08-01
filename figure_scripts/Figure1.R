@@ -3,7 +3,13 @@
 ## figure1.R: generate figure 1 of SCFA paper
 ## Author: Andrew Oliver
 ## Date: Feb 22, 2024
-## to run: docker run --rm -it -p 8787:8787 -e PASSWORD=yourpasswordhere -v `PWD`:/home/docker aoliver44/scfa_analysis:1.1
+## to run: 
+
+## docker run --rm -it \
+## -v ~/Downloads/SCFA-Analysis/figure_scripts:/home/scripts \
+## -v ~/Downloads/SCFA-Analysis-DATA/data/:/home/data \
+## -w /home/docker \
+## scfa_analysis:rstudio bash -c "Rscript Figure1.R"
 
 ## load libraries ==============================================================
 library(dplyr)
@@ -12,16 +18,17 @@ library(ggplot2)
 library(wesanderson)
 library(corrr)
 library(patchwork)
+library(cowplot)
 
 ## set working directory =======================================================
-setwd("/home/docker")
+setwd("/home")
 
 ## source data =================================================================
-source("/home/docker/github/SCFA-Analysis/figure_scripts/pre_process_raw_scfas.R")
-anthropometrics <- read.csv("/home/docker/data/FL100_age_sex_bmi.csv")
+source("/home/scripts/pre_process_raw_scfas.R")
+anthropometrics <- read.csv("/home/data/FL100_age_sex_bmi.csv")
 
 ## wrangle data or source helper functions =====================================
-source("/home/docker/github/SCFA-Analysis/figure_scripts/partial_regression.R")
+source("/home/scripts/partial_regression.R")
 
 ## make plot 1A ================================================================
 plot1a <- fecal_scfas %>%
@@ -41,7 +48,7 @@ plot1a <- fecal_scfas %>%
   labs(x = "", y = "Fecal\nSCFA Abundance (nmol/mg)") 
 
 ## make plot 1B ================================================================
-plot1b <- scfa_plasma_dedup %>%
+plot1b_main <- scfa_plasma_dedup %>%
   dplyr::select(., subject_id, p_acetic_acid_nmol, p_propionic_acid_nmol, p_butyric_acid_nmol, p_scfa_nmol_total) %>%
   reshape2::melt(., id.vars = c("subject_id", "p_scfa_nmol_total")) %>%
   ggplot() + aes(x = reorder(subject_id, -p_scfa_nmol_total), weight = value) + 
@@ -54,7 +61,7 @@ plot1b <- scfa_plasma_dedup %>%
         legend.position = "none",
         panel.background = element_blank(),
         axis.text = element_text(colour = "black")) +
-  labs(x = "", y = "Plasma\nSCFA Abundance (nmol/mg)") 
+  labs(x = "", y = "Plasma\nSCFA Abundance (nmol/ul)") 
 
 ## make plot 1B (inset) ========================================================
 plot1b_inset <- scfa_plasma_dedup %>%
@@ -70,7 +77,12 @@ plot1b_inset <- scfa_plasma_dedup %>%
         legend.position = "none",
         panel.background = element_blank(),
         axis.text = element_text(colour = "black")) +
-  labs(x = "", y = " SCFA Abundance (nmol/mg)") 
+  labs(x = "", y = " SCFA Abundance (nmol/ul)") 
+
+plot1b <-
+  ggdraw() +
+  draw_plot(plot1b_main) +
+  draw_plot(plot1b_inset, x = 0.68, y = .65, width = .3, height = .3)
 
 ## make plot 1D ================================================================
 plot1d <- merge(fecal_scfas, scfa_plasma_dedup, by = "subject_id") %>% 
@@ -82,7 +94,7 @@ plot1d <- merge(fecal_scfas, scfa_plasma_dedup, by = "subject_id") %>%
 ## make plot 1E ================================================================
 ## fecal ph vs fecal scfas
 
-fecal_ph_fecal_scfa <- merge(readr::read_delim("/home/docker/data/FL100_stool_variables.txt"), 
+fecal_ph_fecal_scfa <- merge(readr::read_delim("/home/data/FL100_stool_variables.txt"), 
                              fecal_scfas, by = "subject_id") %>% 
   merge(., anthropometrics, by = "subject_id")
 
@@ -173,7 +185,15 @@ plot1c_3 <- tmp_outer %>% dplyr::filter(., factor_name == "sex") %>%
 
 design <- "
 AAEFGH
-BCEFGI
+BBEFGI
 "
 
-plot1a + plot1b + plot1b_inset + plot1c_1 + plot1c_2 + plot1c_3 + plot1d + plot1e + patchwork::plot_layout(design = design) + patchwork::plot_annotation(tag_levels = c("A", "B", "C", "C", "C", "D", "E"))
+plot1a + plot1b + plot1c_1 + plot1c_2 + plot1c_3 + plot1d + plot1e + patchwork::plot_layout(design = design) + patchwork::plot_annotation(tag_levels = c("A", "B", "C", "C", "C", "D", "E"))
+dir.create(path = "/home/scripts/output_figures", showWarnings = TRUE)
+ggsave(filename = "/home/scripts/output_figures/Figure1.png", 
+       device = "png",
+       width = 20, 
+       height = 8,
+       units = "in",
+       dpi = 400)
+dev.off()

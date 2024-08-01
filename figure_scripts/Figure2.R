@@ -3,7 +3,11 @@
 ## figure2.R: generate figure 2 of SCFA paper
 ## Author: Andrew Oliver
 ## Date: March 18, 2024
-## to run: docker run --rm -it -p 8787:8787 -e PASSWORD=yourpasswordhere -v `PWD`:/home/docker aoliver44/scfa_analysis:1.1
+## docker run --rm -it \
+## -v ~/Downloads/SCFA-Analysis/figure_scripts:/home/scripts \
+## -v ~/Downloads/SCFA-Analysis-DATA/data/:/home/data \
+## -w /home/docker \
+## scfa_analysis:rstudio bash -c "Rscript Figure2.R"
 
 ## load libraries ==============================================================
 library(dplyr)
@@ -14,10 +18,10 @@ library(patchwork)
 library(ggh4x)
 
 ## set working directory =======================================================
-setwd("/home/docker")
+setwd("/home/")
 
 ## source data =================================================================
-path_lf <- "/home/docker/combined_ml_results/combined_results_lf.csv"
+path_lf <- "/home/data/combined_results_lf.csv"
 combined_results <- readr::read_csv(path_lf) %>% janitor::clean_names()
 ## make new column based on if taxaHFE, taxaHFE-ml or neither were run
 combined_results <- combined_results %>%
@@ -140,9 +144,10 @@ combined_results_summary_mae <- combined_results_summary_mae %>%
                    .default = "other"))
 
 ## plot mae difference from null model!
-ggplot() + 
-  geom_bar(aes(fill = Color, x = scfa, weight = mean_percent_change), data = subset(combined_results_summary_mae, combined_results_summary_mae$program != "taxahfe-ml")) + 
-  geom_errorbar(aes(y = facet_mean, ymin = facet_mean, ymax = facet_mean, x = scfa), data = combined_results_summary_mae, linetype = "solid") + 
+top_panel <- ggplot() + 
+  geom_bar(aes(fill = Color, x = scfa, weight = mean_percent_change), 
+           data = subset(combined_results_summary_mae, combined_results_summary_mae$program != "taxahfe-ml" & combined_results_summary_mae$overall_type == "Diet")) + 
+  geom_errorbar(aes(y = facet_mean, ymin = facet_mean, ymax = facet_mean, x = scfa), data =  subset(combined_results_summary_mae, combined_results_summary_mae$overall_type == "Diet"), linetype = "solid") + 
   facet_nested(.~ overall_type + data_group + scfa_type, scales = "free_x", independent = "x") +
   #facet_grid(. ~ data_group + scfa_type, scales = "free_x") + 
   theme_bw() + 
@@ -154,6 +159,34 @@ ggplot() +
   scale_fill_identity() +
   scale_linetype_manual("solid")
 
+bottom_panel <- ggplot() + 
+  geom_bar(aes(fill = Color, x = scfa, weight = mean_percent_change), 
+           data = subset(combined_results_summary_mae, combined_results_summary_mae$program != "taxahfe-ml" & combined_results_summary_mae$overall_type != "Diet")) + 
+  geom_errorbar(aes(y = facet_mean, ymin = facet_mean, ymax = facet_mean, x = scfa), data =  subset(combined_results_summary_mae, combined_results_summary_mae$overall_type != "Diet"), linetype = "solid") + 
+  facet_nested(.~ overall_type + data_group + scfa_type, scales = "free_x", independent = "x") +
+  #facet_grid(. ~ data_group + scfa_type, scales = "free_x") + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 60, hjust = 1), 
+        panel.background = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.grid.major.x = element_blank()) + 
+  labs(x = "", y = "mean MAE percent change from Null Model\n(lower is better)") +
+  scale_fill_identity() +
+  scale_linetype_manual("solid")
+
+design = "A
+B"
+
+top_panel + bottom_panel + patchwork::plot_layout(design = design)
+dir.create(path = "/home/scripts/output_figures", showWarnings = FALSE)
+ggsave(filename = "/home/scripts/output_figures/Figure2.png", 
+       device = "png",
+       width = 11, 
+       height = 10,
+       units = "in",
+       dpi = 400)
+dev.off()
+
 ## get a list of best seeds:
 best_seeds <- combined_results %>% 
   dplyr::filter(., metric == "mae") %>%
@@ -163,7 +196,7 @@ best_seeds <- combined_results %>%
   dplyr::select(., seed, old_name)
 
 ## check and make sure you have 10 obs per dataset
-combined_results %>% dplyr::filter(., metric == "mae") %>% group_by(., dataset, scfa, overall_type, program) %>% tally() %>% View()
+combined_results %>% dplyr::filter(., metric == "mae") %>% dplyr::group_by(., dataset, scfa, overall_type, program) %>% dplyr::tally() %>% dplyr::arrange(desc(n))
 
 ## get coeffecient of variation for the MAE of the models
 cv <- function(x) 100*( sd(x)/mean(x))
@@ -177,5 +210,8 @@ combined_results %>% filter(., metric == "mae", program != "taxahfe-ml") %>%
   summarise(cv= cv(null_model_avg)) %>% summarize(., mean_cv = mean(cv), sd_cv =sd(cv))
 
 ## write raw ml results to file
-write.csv(combined_results, file = "/home/docker/plots/ml_results_for_publishing.csv", quote = F, row.names = F)
+dir.create(path = "/home/scripts/output_figures", showWarnings = FALSE)
+write.csv(combined_results, file = "/home/scripts/output_figures/supplemental_table3.csv", quote = F, row.names = F)
+
+
 

@@ -12,26 +12,26 @@ library(wesanderson)
 library(shapviz)
 
 ## set working directory =======================================================
-setwd("/home/docker")
+setwd("/home/")
 
 ## source SCFA data ============================================================
-source("/home/docker/github/SCFA-Analysis/figure_scripts/pre_process_raw_scfas.R")
-stool_vars <- readr::read_delim("/home/docker/data/FL100_stool_variables.txt") %>%
+source("/home/scripts/pre_process_raw_scfas.R")
+stool_vars <- readr::read_delim("/home/data/FL100_stool_variables.txt") %>%
   dplyr::select(., subject_id, st_wt, fecal_calprotectin, StoolConsistencyClass, bristol_num)
 
 ## wrangle data or source helper functions =====================================
 
 ## acetate
 acetate_shap <- new.env()
-load(file = "/home/docker/combined_ml_results/best_models/acetate_food_taxaHFE/ML_r_workspace.rds", envir = acetate_shap)
+load(file = "/home/data/acetate_food_taxaHFE/ML_r_workspace.rds", envir = acetate_shap)
 
 ## propionate
 propionate_shap <- new.env()
-load(file = "/home/docker/combined_ml_results/best_models/propionate_food_taxaHFE/ML_r_workspace.rds", envir = propionate_shap)
+load(file = "/home/data/propionate_food_taxaHFE/ML_r_workspace.rds", envir = propionate_shap)
 
 ## butyrate
 butyrate_shap <- new.env()
-load(file = "/home/docker/combined_ml_results/best_models/new_butyrate_food_taxaHFE/ML_r_workspace.rds", envir = butyrate_shap)
+load(file = "/home/data/new_butyrate_food_taxaHFE/ML_r_workspace.rds", envir = butyrate_shap)
 
 ## make figure =================================================================
 
@@ -62,3 +62,12 @@ B
 C"
 
 acetate_shap_plot + propionate_shap_plot + butyrate_shap_plot + patchwork::plot_layout(design = design) + patchwork::plot_annotation(tag_levels = "A")
+
+dir.create(path = "/home/scripts/output_figures", showWarnings = TRUE)
+ggsave(filename = "/home/scripts/output_figures/Figure3.png", 
+       device = "png",
+       width = 9, 
+       height = 10,
+       units = "in",
+       dpi = 400)
+dev.off()
