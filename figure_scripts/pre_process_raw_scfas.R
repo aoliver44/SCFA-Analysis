@@ -16,7 +16,7 @@ library(dplyr)
 
 `%!in%` <- Negate(`%in%`)
 ## read in PLASMA SCFA data
-scfa_plasma <- readr::read_delim("data/plasma_scfas.csv", delim = ",", col_types = "fdddf")
+scfa_plasma <- readr::read_delim("/home/data/plasma_scfas.csv", delim = ",", col_types = "fdddf")
 
 ## any missing or NA in propionate or butyrate, make it 10
 ## this is because you supply 10 as the value that is left-censored in 
@@ -24,7 +24,7 @@ scfa_plasma <- readr::read_delim("data/plasma_scfas.csv", delim = ",", col_types
 scfa_plasma[c("p_butyric_acid", "p_propionic_acid")][is.na(scfa_plasma[c("p_butyric_acid", "p_propionic_acid")])] <- 10
 
 ## create a list of plasma samples we have multiples of
-scfa_duplicated <- scfa_plasma %>% filter(., duplicates != "") %>% pull(., subject_id) %>% droplevels()
+scfa_duplicated <- scfa_plasma %>% dplyr::filter(., duplicates != "") %>% dplyr::pull(., subject_id) %>% droplevels()
 scfas <- c("p_acetic_acid", "p_propionic_acid", "p_butyric_acid")
 
 ## create a empty DF for which to place the averaged out duplicated samples
@@ -37,8 +37,8 @@ deduplicated <- data.frame(subject_id=character(),
 for (subject in unique(scfa_duplicated)) {
   
   ## for each duplicated sample, pull it out and all the duplicated SCFA data
-  scfa_duplicated_tmp <- scfa_plasma %>% filter(., subject_id == subject) %>% 
-    select(., subject_id, p_acetic_acid, p_propionic_acid, p_butyric_acid)
+  scfa_duplicated_tmp <- scfa_plasma %>% dplyr::filter(., subject_id == subject) %>% 
+    dplyr::select(., subject_id, p_acetic_acid, p_propionic_acid, p_butyric_acid)
   
   ## check and make sure you dont have a SCFA that is completely missing data
   ## you shouldnt with this data
@@ -81,14 +81,14 @@ scfa_plasma_dedup$p_acetic_acid_nmol_norm <- scfa_plasma_dedup$p_acetic_acid_nmo
 scfa_plasma_dedup$p_propionic_acid_nmol_norm <- scfa_plasma_dedup$p_propionic_acid_nmol / scfa_plasma_dedup$p_scfa_nmol_total
 
 ## write to file
-readr::write_delim("data/plasma_scfas_normalized.csv", delim = ",", x = scfa_plasma_dedup)
+readr::write_delim("/home/data/plasma_scfas_normalized.csv", delim = ",", x = scfa_plasma_dedup)
 
 ## READ IN FECAL SCFA ==========================================================
-fecal_scfas <- readr::read_delim("data/fecal_scfa_fl100.csv", delim = ",", col_types = "fdddd") %>% dplyr::select(., -butyrate)
-new_fecal_butyrate <- readr::read_delim("data/butyrate_isob_new_integration_12-06-22.csv", delim = ",", col_types = "fdd")
+fecal_scfas <- readr::read_delim("/home/data/fecal_scfa_fl100.csv", delim = ",", col_types = "fdddd") %>% dplyr::select(., -butyrate)
+new_fecal_butyrate <- readr::read_delim("/home/data/butyrate_isob_new_integration_12-06-22.csv", delim = ",", col_types = "fdd")
 fecal_scfas <- merge(new_fecal_butyrate, fecal_scfas, by = "subject_id")
 fecal_scfas <- fecal_scfas %>% rename(., "butyrate" = "new_butyrate", "isobutyrate" = "new_isobutyrate")
-fecal_vars <- read.delim("/home/docker/data/FL100_stool_variables.txt")
+fecal_vars <- read.delim("/home/data/FL100_stool_variables.txt")
 
 ## get rid of fecal samples that are >24 hrs or after visit 1
 fecal_vars <- fecal_vars %>%
