@@ -11,17 +11,17 @@ library(ggpubr)
 library(dplyr)
 
 ## set working directory =======================================================
-setwd("/home/docker")
+setwd("/home/")
 
 ## source data =================================================================
-source("/home/docker/github/SCFA-Analysis/figure_scripts/pre_process_raw_scfas.R")
+source("/home/scripts/pre_process_raw_scfas.R")
 
-inflammation <- merge(readr::read_csv("/home/docker/data/CTSC24532USDAWHNRCNu-GIMarkers7Oct2021_DATA_2021-10-07_1627.csv"), 
-                      readr::read_csv("/home/docker/data/CRP_WBC_9102021.csv"), 
+inflammation <- merge(readr::read_csv("/home/data/CTSC24532USDAWHNRCNu-GIMarkers7Oct2021_DATA_2021-10-07_1627.csv"), 
+                      readr::read_csv("/home/data/CRP_WBC_9102021.csv"), 
                       by = "subject_id")
-
+anthropometrics <- read.csv("/home/data/FL100_age_sex_bmi.csv")
 ## source helper functions =====================================================
-source("/home/docker/github/SCFA-Analysis/figure_scripts/partial_regression.R")
+source("/home/scripts/partial_regression.R")
 
 ## wrangle data ================================================================
 
@@ -69,4 +69,5 @@ all_samples_inflammation_filtered <- all_samples_inflammation %>%
                 "Tobit p-value" = "tobit_pvalue") %>% 
   dplyr::arrange(Type)
 
-knitr::kable(all_samples_inflammation_filtered)
+#knitr::kable(all_samples_inflammation_filtered)
+write.csv(all_samples_inflammation_filtered, file = "/home/scripts/output_figures/Table1.csv", quote = F, row.names = F)
