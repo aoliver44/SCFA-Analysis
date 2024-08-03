@@ -14,36 +14,61 @@ _________________________________________________
 ```
 git clone aoliver44/SCFA-Analysis
 cd SCFA-Analysis
-docker build -t scfa_analysis:1.0 .
+docker build -t scfa_analysis:rstudio .
 ```
 - EVEN EASIER: you can just pull the image from docker hub (though i still recommend you clone the enviornment to have the scripts):
   ```
-  docker pull aoliver44/scfa_analysis:latest
+  docker pull aoliver44/scfa_analysis:rstudio
   ```
+________________________________________
+### **To generate the figures from paper**
+_________________________________________________
 
+IMPORTANT: Assuming you cloned the GitHub repositories to your downloads foder. If this is not where you downloaded the GitHub repositories, change this
 
-- **In order to run the container:**
+These commands will generate figures in a folder called ```~/Downloads/SCFA-Analysis/figure_scripts/output_figures/```
 
-    1. (assuming you are still in the cloned repository folder) ```docker run --rm -it -p 8787:8787 -e PASSWORD=yourpasswordhere -v `pwd`:/home/docker/ scfa_analysis:1.0``` (or whatever you named the container)
-    2. navigate to http://localhost:8787/ in a browser window
-    3. log into the Rstudio local server
-        - username: rstudio
-        - password: yourpasswordhere (if you didnt set one in docker run command)
-    4. change to the scripts working directory inside R.
-        - setwd("/home/docker")
-    5. navigate the filesystem to the working directory.
-    
-        ![plot showing changing working directory in the file pane](https://github.com/aoliver44/SCFA-Analysis/blob/main/utilities/readme_picture.png)
-_____________
-### **Figures**
-_____________
-- to generate most of the main/supp figures and tables in the manuscript, source each the script that is named that for the figure
+**Prior to generating figures**
+```
+~/Downloads # if you download elsewhere, change throughout
+git clone [DATA REPOSITORY]
+git clone aoliver44/SCFA-Analysis
+```
+**Generate a figure**
+```
+docker run --rm -it \
+-v ~/Downloads/SCFA-Analysis/figure_scripts/:/home/scripts \
+-v ~/Downloads/SCFA-Analysis-DATA/data/:/home/data \
+-w /home \
+scfa_analysis:rstudio bash -c "Rscript Figure1.R"
+```
+Note: you can generate any figure above by changing Figure1.R to another figure name. Options include:
+1. Figure1.R
+2. Figure2.R
+3. Figure3.R
+4. Figure4.R
+5. Figure5.R
+6. Table1.R
+
+**To work inside the container (if you want to look closer at the code and run it interactively):**
+
+1. (assuming you cloned the repository to your Downloads folder) 
+
+    ```docker run --rm -it -p 8787:8787 -e PASSWORD=yourpasswordhere -v ~/Downloads/SCFA-Analysis/figure_scripts/:/home/scripts -v ~/Downloads/SCFA-Analysis-DATA/data/:/home/data -w /home scfa_analysis:rstudio```
+
+2. navigate to http://localhost:8787/ in a browser window
+3. log into the Rstudio local server
+    - username: rstudio
+    - password: yourpasswordhere (if you didnt set one in docker run command)
+4. change to the scripts working directory inside R.
+    - setwd("/home")
+5. navigate the filesystem to the working directory.
+    ![plot showing changing working directory in the file pane](https://github.com/aoliver44/SCFA-Analysis/blob/main/utilities/readme_picture.png)
 ____________
 ### **Computing Environments**
 _______________
 - all code used in this analysis is provided
 - R analyses were run locally on a intel-based macbook pro
-- ML analyses were run on Ceres, a supercomputer for use by USDA researchers
-- Sequence preprocessing was run on Spitfire, a slurm-based HPC cluster managed by the UC Davis Genome Center
+- Sequence preprocessing & ML analyses was run on Spitfire, a slurm-based HPC cluster managed by the UC Davis Genome Center
     - code for sequencing preprocessing can be found [here](https://github.com/dglemay/ARG_metagenome)
 
