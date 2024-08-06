@@ -31,7 +31,7 @@ These commands will generate figures in a folder called ```~/Downloads/SCFA-Anal
 **Prior to generating figures**
 ```
 cd ~/Downloads # if you download elsewhere, change throughout
-git clone [DATA REPOSITORY]
+git clone SCFA-Analysis-DATA ## PRIVATE REPO - For access, see instructions above
 git clone aoliver44/SCFA-Analysis
 ```
 **Generate a figure**
