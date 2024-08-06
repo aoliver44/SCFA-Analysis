@@ -49,6 +49,12 @@ Note: you can generate any figure above by changing Figure1.R to another figure 
 4. Figure4.R
 5. Figure5.R
 6. Table1.R
+7. supplemental_figure2.R
+8. supplemental_figure3.R
+9. supplemental_figure4.R
+10. supplemental_figure5.R
+11. supplemental_figure6.R
+
 
 **To work inside the container (if you want to look closer at the code and run it interactively):**
 
