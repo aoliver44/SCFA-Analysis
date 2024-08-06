@@ -30,7 +30,7 @@ These commands will generate figures in a folder called ```~/Downloads/SCFA-Anal
 
 **Prior to generating figures**
 ```
-~/Downloads # if you download elsewhere, change throughout
+cd ~/Downloads # if you download elsewhere, change throughout
 git clone [DATA REPOSITORY]
 git clone aoliver44/SCFA-Analysis
 ```
