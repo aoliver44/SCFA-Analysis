@@ -69,6 +69,7 @@ Note: you can generate any figure above by changing Figure1.R to another figure 
 4. change to the scripts working directory inside R.
     - setwd("/home")
 5. navigate the filesystem to the working directory.
+   
     ![plot showing changing working directory in the file pane](https://github.com/aoliver44/SCFA-Analysis/blob/main/utilities/readme_picture.png)
 ____________
 ### **Computing Environments**
