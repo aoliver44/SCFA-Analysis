@@ -74,4 +74,5 @@ all_samples_inflammation_filtered <- all_samples_inflammation %>%
   dplyr::arrange(Type)
 
 #knitr::kable(all_samples_inflammation_filtered)
+dir.create(path = "/home/scripts/output_figures", showWarnings = TRUE)
 write.csv(all_samples_inflammation_filtered, file = "/home/scripts/output_figures/Table1.csv", quote = F, row.names = F)
