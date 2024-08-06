@@ -3,30 +3,35 @@
 ## supplemental_table2.R: script to generate supp table 2 in SCFA paper
 ## Author: Andrew Oliver
 ## Date: Jul 16, 2024
-## to run: docker run --rm -it -p 8787:8787 -e PASSWORD=yourpasswordhere -v `PWD`:/home/docker aoliver44/scfa_analysis:1.1
+## docker run --rm -it \
+## -v ~/Downloads/SCFA-Analysis/figure_scripts:/home/scripts \
+## -v ~/Downloads/SCFA-Analysis-DATA/data/:/home/data \
+## -w /home/docker \
+## scfa_analysis:rstudio bash -c "Rscript supplemental_table2.R"
 
 ## set working directory =======================================================
-setwd("/home/docker")
+setwd("/home/")
 
 ## source data =================================================================
-source("/home/docker/github/SCFA-Analysis/figure_scripts/pre_process_raw_scfas.R")
-source("/home/docker/github/SCFA-Analysis/figure_scripts/partial_regression.R")
+set.seed(123)
+source("/home/scripts/pre_process_raw_scfas.R")
+source("/home/scripts/partial_regression.R")
 
-hei_ffq <- readr::read_csv("/home/docker/data/HEI FFQ_scores_12072021.csv") %>%
+hei_ffq <- readr::read_csv("/home/data/HEI FFQ_scores_12072021.csv") %>%
   dplyr::select(., subject_id, hei_ffq_totalscore)
-hei_asa <- readr::read_delim("/home/docker/data/FL100_HEI_n378.txt") %>%
+hei_asa <- readr::read_delim("/home/data/FL100_HEI_n378.txt") %>%
   dplyr::select(., subject_id, hei_asa24_totalscore)
-asa24_fiber <- readr::read_delim("/home/docker/data/ASA24_average_fiber_summary_variables.txt")
-ffq_fiber_vars <- readr::read_csv("/home/docker/data/fibergroups_fl100cohort.csv") %>% 
+asa24_fiber <- readr::read_delim("/home/data/ASA24_average_fiber_summary_variables.txt")
+ffq_fiber_vars <- readr::read_csv("/home/data/fibergroups_fl100cohort.csv") %>% 
   dplyr::select(., subject_id, fibe_per1000_ffq, dt_fibe, dt_fiber_sol)
-pd_carbs <- readr::read_delim("/home/docker/data/qiime1_alphadiv_carb.txt") %>% 
+pd_carbs <- readr::read_delim("/home/data/qiime1_alphadiv_carb.txt") %>% 
   dplyr::select(., subject_id, PD_carbs)
-pd_fiber <- readr::read_delim("/home/docker/data/qiime1_alphadiv_fiber.txt") %>% 
+pd_fiber <- readr::read_delim("/home/data/qiime1_alphadiv_fiber.txt") %>% 
   dplyr::select(., subject_id, PD_fiber)
-anthropometrics <- read.csv("/home/docker/data/FL100_age_sex_bmi.csv")
-stool_vars <- readr::read_delim("/home/docker/data/FL100_stool_variables.txt") %>%
+anthropometrics <- read.csv("/home/data/FL100_age_sex_bmi.csv")
+stool_vars <- readr::read_delim("/home/data/FL100_stool_variables.txt") %>%
   dplyr::select(., subject_id, st_wt, fecal_calprotectin, StoolConsistencyClass, bristol_num)
-ethnicity <- readr::read_csv("/home/docker/data/DEXA_ethnicities04272020.csv") #%>% dplyr::filter(., Ethnicity %in% c("White", "Hispanic")) %>% droplevels()
+ethnicity <- readr::read_csv("/home/data/DEXA_ethnicities04272020.csv") #%>% dplyr::filter(., Ethnicity %in% c("White", "Hispanic")) %>% droplevels()
 
 ## Make Supp Table 2 ===========================================================
 
@@ -41,7 +46,7 @@ all_fiber_vars_scfa <- merge(fecal_scfas, hei_ffq, by = "subject_id", all = T) %
   merge(., anthropometrics, by = "subject_id", all = T) %>%
   merge(., stool_vars, by = "subject_id", all = T) %>%
   merge(., ethnicity, by = "subject_id", all = T) %>%
-  merge(., readr::read_csv("/home/docker/data/CRP_WBC_9102021.csv"), by = "subject_id", all = T)
+  merge(., readr::read_csv("/home/data/CRP_WBC_9102021.csv"), by = "subject_id", all = T)
 
 ## remove NA subject IDS 
 all_fiber_vars_scfa <- all_fiber_vars_scfa %>%
@@ -94,4 +99,5 @@ fiber_scfa <- fiber_scfa %>%
   dplyr::mutate(., regression_p.adjust = ifelse(scfa_type == "fecal" | scfa == "p_acetic_acid_nmol" | scfa == "p_scfa_nmol_total", p.adjust(lm_p_value, method='fdr'), p.adjust(tobit_pvalue, method='fdr'))) 
 
 ## write to file
-write.csv(fiber_scfa, file = "/home/docker/plots/directed_hypotheses.csv", quote = F, row.names = F)
+dir.create(path = "/home/scripts/output_figures", showWarnings = TRUE)
+write.csv(fiber_scfa, file = "/home/scripts/output_figures/supplemental_table2.csv", quote = F, row.names = F)

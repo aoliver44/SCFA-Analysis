@@ -3,7 +3,11 @@
 ## supplemental_figure4.R: generate supp figure 4 of SCFA paper
 ## Author: Andrew Oliver
 ## Date: Jul 16, 2024
-## to run: docker run --rm -it -p 8787:8787 -e PASSWORD=yourpasswordhere -v `PWD`:/home/docker aoliver44/scfa_rstudio:1.0
+## docker run --rm -it \
+## -v ~/Downloads/SCFA-Analysis/figure_scripts:/home/scripts \
+## -v ~/Downloads/SCFA-Analysis-DATA/data/:/home/data \
+## -w /home/docker \
+## scfa_analysis:rstudio bash -c "Rscript supplemental_figure4.R"
 
 ## load libraries ==============================================================
 library(dplyr)
@@ -14,14 +18,15 @@ library(wesanderson)
 library(patchwork)
 
 ## set working directory =======================================================
-setwd("/home/docker")
+setwd("/home/")
 
 ## source SCFA data ============================================================
-source("/home/docker/github/SCFA-Analysis/figure_scripts/pre_process_raw_scfas.R")
+set.seed(123)
+source("/home/scripts/pre_process_raw_scfas.R")
 
 ## wrangle data or source helper functions =====================================
-inflammation_markers <- merge(readr::read_csv("/home/docker/data/CTSC24532USDAWHNRCNu-GIMarkers7Oct2021_DATA_2021-10-07_1627.csv"), 
-                              readr::read_csv("/home/docker/data/CRP_WBC_9102021.csv"), 
+inflammation_markers <- merge(readr::read_csv("/home/data/CTSC24532USDAWHNRCNu-GIMarkers7Oct2021_DATA_2021-10-07_1627.csv"), 
+                              readr::read_csv("/home/data/CRP_WBC_9102021.csv"), 
                               by = "subject_id") %>%
   dplyr::select(., dplyr::any_of(c("subject_id", "fecal_calprotectin", "crp_bd1"))) %>%
   merge(., fecal_scfas, by = "subject_id", all = T) %>%
@@ -37,6 +42,7 @@ inflammation_markers <- merge(readr::read_csv("/home/docker/data/CTSC24532USDAWH
                                    "p_propionic_acid_nmol", "p_butyric_acid_nmol", 
                                    "p_scfa_nmol_total")) 
 
+## clean up data, order factors
 inflammation_markers$fecal_cal_cutoff <- factor(x = inflammation_markers$fecal_cal_cutoff, levels = c("low", "high"), ordered = T)
 inflammation_markers$crp_bd1_cutoff <- factor(x = inflammation_markers$crp_bd1_cutoff, levels = c("low", "high"), ordered = T)
 inflammation_markers$variable <- factor(x = inflammation_markers$variable, levels = c("acetate", 
@@ -44,6 +50,7 @@ inflammation_markers$variable <- factor(x = inflammation_markers$variable, level
                                                                                       "propionate_norm_ratio_dist", "butyrate", 
                                                                                       "butyrate_norm_ratio_dist", 
                                                                                       "total_scfa", "p_acetic_acid_nmol", "p_propionic_acid_nmol", "p_butyric_acid_nmol", "p_scfa_nmol_total"), ordered = T)
+## create an overall SCFA factor for ratio and raw
 inflammation_markers <- inflammation_markers %>%
   dplyr::mutate(overall_scfa = case_when(
     variable == "acetate" ~ 'fecal acetate',
@@ -61,6 +68,7 @@ inflammation_markers <- inflammation_markers %>%
   )
   )
 
+## create a factor for color palletes
 inflammation_markers <- inflammation_markers %>%
   dplyr::mutate(twin_scfas = case_when(
     variable == "acetate" ~ 'acetate',
@@ -78,6 +86,7 @@ inflammation_markers <- inflammation_markers %>%
   )
   )
 
+## color pallete based on SCFA
 inflammation_markers <- inflammation_markers %>%
   dplyr::mutate(color_fills = case_when(
     twin_scfas == "acetate" ~ '#0A9F9D',
@@ -89,6 +98,7 @@ inflammation_markers <- inflammation_markers %>%
   )
   )
 
+## create a ratio/raw factor
 inflammation_markers <- inflammation_markers %>%
   dplyr::mutate(ratio_raw = case_when(
     variable == "acetate" ~ 'raw',
@@ -106,13 +116,13 @@ inflammation_markers <- inflammation_markers %>%
   )
   )
 
+## order SCFAs
 inflammation_markers$twin_scfas <- factor(x = inflammation_markers$twin_scfas, levels = c("acetate","propionate","butyrate", "total_fecal","total_plasma"), ordered = T)
-
-
+## order ratios/raw
 inflammation_markers$ratio_raw <- factor(x = inflammation_markers$ratio_raw, levels = c("raw", "ratio"), ordered = T)
-
-inflammation_distribution <- merge(readr::read_csv("/home/docker/data/CTSC24532USDAWHNRCNu-GIMarkers7Oct2021_DATA_2021-10-07_1627.csv"), 
-                              readr::read_csv("/home/docker/data/CRP_WBC_9102021.csv"), 
+## create DF for inflammation distribution
+inflammation_distribution <- merge(readr::read_csv("/home/data/CTSC24532USDAWHNRCNu-GIMarkers7Oct2021_DATA_2021-10-07_1627.csv"), 
+                              readr::read_csv("/home/data/CRP_WBC_9102021.csv"), 
                               by = "subject_id") %>%
   dplyr::select(., dplyr::any_of(c("subject_id", "fecal_calprotectin", "crp_bd1"))) %>%
   merge(., fecal_scfas, by = "subject_id", all = T) %>%
@@ -180,3 +190,12 @@ C
 D"
 
 fecal_cal_density + crp_density + sup_figure4B + sup_figure4C + patchwork::plot_layout(design = design) + patchwork::plot_annotation(tag_levels = c("A"))
+
+dir.create(path = "/home/scripts/output_figures", showWarnings = TRUE)
+ggsave(filename = "/home/scripts/output_figures/supplemental_figure4.png", 
+       device = "png",
+       width = 12, 
+       height = 12,
+       units = "in",
+       dpi = 400)
+dev.off()

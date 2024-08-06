@@ -3,17 +3,22 @@
 ## supplemental_table1.R: generate supp table 1 of SCFA paper
 ## Author: Andrew Oliver
 ## Date: Jul 16, 2024
-## to run: docker run --rm -it -p 8787:8787 -e PASSWORD=yourpasswordhere -v `PWD`:/home/docker aoliver44/scfa_rstudio:1.0
+## docker run --rm -it \
+## -v ~/Downloads/SCFA-Analysis/figure_scripts:/home/scripts \
+## -v ~/Downloads/SCFA-Analysis-DATA/data/:/home/data \
+## -w /home/docker \
+## scfa_analysis:rstudio bash -c "Rscript supplemental_table1.R"
 
 ## load libraries ==============================================================
 library(dplyr)
 
 ## set working directory =======================================================
-setwd("/home/docker")
+setwd("/home/")
 
 ## source SCFA data ============================================================
-source("/home/docker/github/SCFA-Analysis/figure_scripts/pre_process_raw_scfas.R")
-anthropometrics <- read.csv("/home/docker/data/FL100_age_sex_bmi.csv")
+set.seed(123)
+source("/home/scripts/pre_process_raw_scfas.R")
+anthropometrics <- read.csv("/home/data/FL100_age_sex_bmi.csv")
 
 ## make supp table 1 ===========================================================
 
@@ -70,5 +75,7 @@ supp_table1 <- data.frame(sex=c(rep("MALE", 9),  rep("FEMALE", 9)),
 
 knitr::kable(supp_table1)
 
+dir.create(path = "/home/scripts/output_figures", showWarnings = TRUE)
+write.csv(supp_table1, file = "/home/scripts/output_figures/supplemental_table1.csv", quote = F, row.names = F)
 
 
