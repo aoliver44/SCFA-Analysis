@@ -3,7 +3,11 @@
 ## supplemental_figure3.R: generate supp figure 3 of SCFA paper
 ## Author: Andrew Oliver
 ## Date: July 16, 2024
-## to run: docker run --rm -it -p 8787:8787 -e PASSWORD=yourpasswordhere -v `PWD`:/home/docker aoliver44/scfa_analysis:1.1
+## docker run --rm -it \
+## -v ~/Downloads/SCFA-Analysis/figure_scripts:/home/scripts \
+## -v ~/Downloads/SCFA-Analysis-DATA/data/:/home/data \
+## -w /home/docker \
+## scfa_analysis:rstudio bash -c "Rscript supplemental_figure3.R"
 
 ## load libraries ==============================================================
 library(patchwork)
@@ -11,18 +15,18 @@ library(ggpubr)
 library(dplyr)
 
 ## set working directory =======================================================
-setwd("/home/docker")
+setwd("/home")
 
 ## source data =================================================================
-source("/home/docker/github/SCFA-Analysis/figure_scripts/pre_process_raw_scfas.R")
+source("/home/scripts/pre_process_raw_scfas.R")
 
-anthropometrics <- read.csv("/home/docker/data/FL100_age_sex_bmi.csv")
-food_codes <- readr::read_delim(file = "/home/docker/data/food_tree_data/fl100_newick_taxonomy_nowater.txt", delim = "\t")
-food_tree <- readr::read_delim(file = "/home/docker/data/food_tree_data/fl100_otu_abundance.txt", delim = "\t")
-fndds <- readxl::read_xlsx(path = "/home/docker/data/food_tree_data/2015-2016 FNDDS At A Glance - FNDDS Nutrient Values.xlsx", skip = 1)
-stool_vars <- readr::read_delim("/home/docker/data/FL100_stool_variables.txt")
-ingredient_butyrate <- readr::read_csv("/home/docker/data/ingredient_butyrate_073123.csv")
-asa_data_qc <- readr::read_delim("/home/docker/data/fl100_recalls_qcd.csv", delim = ",")
+anthropometrics <- read.csv("/home/data/FL100_age_sex_bmi.csv")
+food_codes <- readr::read_delim(file = "/home/data/fl100_newick_taxonomy_nowater.txt", delim = "\t")
+food_tree <- readr::read_delim(file = "/home/data/fl100_otu_abundance.txt", delim = "\t")
+fndds <- readxl::read_xlsx(path = "/home/data/2015-2016 FNDDS At A Glance - FNDDS Nutrient Values.xlsx", skip = 1)
+stool_vars <- readr::read_delim("/home/data/FL100_stool_variables.txt")
+ingredient_butyrate <- readr::read_csv("/home/data/ingredient_butyrate_073123.csv")
+asa_data_qc <- readr::read_delim("/home/data/fl100_recalls_qcd.csv", delim = ",")
 
 ## wrangle data or source helper functions =====================================
 
@@ -105,7 +109,15 @@ ggplot(data = butyrate_melt) +
   facet_wrap(variable ~ ., scales = "free", nrow = 1) + 
   theme_bw() + 
   ggpubr::stat_cor(size = 2.5) + 
-  labs(y = "Butyrate (nmol / mg or ml)", x = "Dietary Butyrate\n(quantified from ASA24 dietary recals)")
+  labs(y = "Butyrate (nmol / mg or ul)\n or relative abundance", x = "Dietary Butyrate\n(quantified from ASA24 dietary recals)")
 
+dir.create(path = "/home/scripts/output_figures", showWarnings = TRUE)
+ggsave(filename = "/home/scripts/output_figures/supplemental_figure3.png", 
+       device = "png",
+       width = 7, 
+       height = 3,
+       units = "in",
+       dpi = 400)
+dev.off()
 
 

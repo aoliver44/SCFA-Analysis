@@ -1,38 +1,42 @@
-## Figure 2
+## Supp Figure 2
 
-## figure2.R: generate figure 2 of SCFA paper
+## supplemental_figure2.R: generate figure 2 of SCFA paper
 ## Author: Andrew Oliver
 ## Date: March 18, 2024
-## to run: docker run --rm -it -p 8787:8787 -e PASSWORD=yourpasswordhere -v `PWD`:/home/docker aoliver44/scfa_analysis:1.1
+## docker run --rm -it \
+## -v ~/Downloads/SCFA-Analysis/figure_scripts:/home/scripts \
+## -v ~/Downloads/SCFA-Analysis-DATA/data/:/home/data \
+## -w /home/docker \
+## scfa_analysis:rstudio bash -c "Rscript supplemental_figure2.R"
 
 ## load libraries ==============================================================
 library(ggplot2)
 library(patchwork)
 
 ## set working directory =======================================================
-setwd("/home/docker")
+setwd("/home/")
 
 ## source helper scripts  ======================================================
 set.seed(123)
-source("/home/docker/github/SCFA-Analysis/figure_scripts/pre_process_raw_scfas.R")
-source("/home/docker/github/SCFA-Analysis/figure_scripts/partial_regression.R")
+source("/home/scripts/pre_process_raw_scfas.R")
+source("/home/scripts/partial_regression.R")
 
 ## Read in data and wrangle   ==================================================
-hei_ffq <- readr::read_csv("/home/docker/data/HEI FFQ_scores_12072021.csv") %>%
+hei_ffq <- readr::read_csv("/home/data/HEI FFQ_scores_12072021.csv") %>%
   dplyr::select(., subject_id, hei_ffq_totalscore)
-hei_asa <- readr::read_delim("/home/docker/data/FL100_HEI_n378.txt") %>%
+hei_asa <- readr::read_delim("/home/data/FL100_HEI_n378.txt") %>%
   dplyr::select(., subject_id, hei_asa24_totalscore)
-asa24_fiber <- readr::read_delim("/home/docker/data/ASA24_average_fiber_summary_variables.txt")
-ffq_fiber_vars <- readr::read_csv("/home/docker/data/fibergroups_fl100cohort.csv") %>% 
+asa24_fiber <- readr::read_delim("/home/data/ASA24_average_fiber_summary_variables.txt")
+ffq_fiber_vars <- readr::read_csv("/home/data/fibergroups_fl100cohort.csv") %>% 
   dplyr::select(., subject_id, fibe_per1000_ffq, dt_fibe, dt_fiber_sol)
-pd_carbs <- readr::read_delim("/home/docker/data/qiime1_alphadiv_carb.txt") %>% 
+pd_carbs <- readr::read_delim("/home/data/qiime1_alphadiv_carb.txt") %>% 
   dplyr::select(., subject_id, PD_carbs)
-pd_fiber <- readr::read_delim("/home/docker/data/qiime1_alphadiv_fiber.txt") %>% 
+pd_fiber <- readr::read_delim("/home/data/qiime1_alphadiv_fiber.txt") %>% 
   dplyr::select(., subject_id, PD_fiber)
-anthropometrics <- read.csv("/home/docker/data/FL100_age_sex_bmi.csv")
-stool_vars <- readr::read_delim("/home/docker/data/FL100_stool_variables.txt") %>%
+anthropometrics <- read.csv("/home/data/FL100_age_sex_bmi.csv")
+stool_vars <- readr::read_delim("/home/data/FL100_stool_variables.txt") %>%
   dplyr::select(., subject_id, st_wt, fecal_calprotectin, StoolConsistencyClass, bristol_num)
-ethnicity <- readr::read_csv("/home/docker/data/DEXA_ethnicities04272020.csv") #%>% dplyr::filter(., Ethnicity %in% c("White", "Hispanic")) %>% droplevels()
+ethnicity <- readr::read_csv("/home/data/DEXA_ethnicities04272020.csv") #%>% dplyr::filter(., Ethnicity %in% c("White", "Hispanic")) %>% droplevels()
 
 all_fiber_vars_scfa <- merge(fecal_scfas, hei_ffq, by = "subject_id", all = T) %>%
   merge(., hei_asa, by = "subject_id", all = T) %>%
@@ -44,7 +48,7 @@ all_fiber_vars_scfa <- merge(fecal_scfas, hei_ffq, by = "subject_id", all = T) %
   merge(., anthropometrics, by = "subject_id", all = T) %>%
   merge(., stool_vars, by = "subject_id", all = T) %>%
   merge(., ethnicity, by = "subject_id", all = T) %>%
-  merge(., readr::read_csv("/home/docker/data/CRP_WBC_9102021.csv"), by = "subject_id", all = T)
+  merge(., readr::read_csv("/home/data/CRP_WBC_9102021.csv"), by = "subject_id", all = T)
 
 all_fiber_vars_scfa_noInflam <- all_fiber_vars_scfa %>%
   dplyr::filter(., subject_id != "NA") %>%
@@ -153,4 +157,12 @@ design = "ABC
 DEF"
 
 butyrate_hei_ffq + butyrate_hei_ffq_no_inflam + butyrate_fiber_cal_corrected + butyrate_fiber_hei_asa + p_propionate_sol_fiber + p_propionate_sol_fiber + patchwork::plot_layout(design = design) + patchwork::plot_annotation(tag_levels = "A")
+dir.create(path = "/home/scripts/output_figures", showWarnings = TRUE)
+ggsave(filename = "/home/scripts/output_figures/supplemental_figure2.png", 
+       device = "png",
+       width = 13, 
+       height = 7,
+       units = "in",
+       dpi = 400)
+dev.off()
 

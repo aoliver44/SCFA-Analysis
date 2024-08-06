@@ -3,7 +3,11 @@
 ## Table1.R: generate table 1 of SCFA paper
 ## Author: Andrew Oliver
 ## Date: July 16, 2024
-## to run: docker run --rm -it -p 8787:8787 -e PASSWORD=yourpasswordhere -v `PWD`:/home/docker aoliver44/scfa_analysis:1.1
+## docker run --rm -it \
+## -v ~/Downloads/SCFA-Analysis/figure_scripts:/home/scripts \
+## -v ~/Downloads/SCFA-Analysis-DATA/data/:/home/data \
+## -w /home/docker \
+## scfa_analysis:rstudio bash -c "Rscript Table1.R"
 
 ## load libraries ==============================================================
 library(patchwork)
