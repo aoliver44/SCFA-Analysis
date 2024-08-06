@@ -18,7 +18,9 @@ library(dplyr)
 setwd("/home")
 
 ## source data =================================================================
+set.seed(123)
 source("/home/scripts/pre_process_raw_scfas.R")
+source("/home/scripts/partial_regression.R")
 
 anthropometrics <- read.csv("/home/data/FL100_age_sex_bmi.csv")
 food_codes <- readr::read_delim(file = "/home/data/fl100_newick_taxonomy_nowater.txt", delim = "\t")
