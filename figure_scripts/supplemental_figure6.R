@@ -14,6 +14,7 @@ library(dplyr)
 library(picante)
 library(ggplot2)
 library(wesanderson)
+library(vegan)
 
 ## set working directory =======================================================
 setwd("/home/")
