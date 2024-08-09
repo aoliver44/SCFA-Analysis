@@ -39,8 +39,8 @@ git clone https://github.com/aoliver44/SCFA-Analysis.git
 docker run --rm -it \
 -v ~/Downloads/SCFA-Analysis/figure_scripts/:/home/scripts \
 -v ~/Downloads/SCFA-Analysis-DATA/data/:/home/data \
--w /home \
-scfa_analysis:rstudio bash -c "Rscript Figure1.R"
+-w /home/scripts \
+aoliver44/scfa_analysis:rstudio bash -c "Rscript Figure1.R"
 ```
 Note: you can generate any figure above by changing Figure1.R to another figure name. Options include:
 1. Figure1.R
@@ -60,7 +60,7 @@ Note: you can generate any figure above by changing Figure1.R to another figure 
 
 1. (assuming you cloned the repository to your Downloads folder) 
 
-    ```docker run --rm -it -p 8787:8787 -e PASSWORD=yourpasswordhere -v ~/Downloads/SCFA-Analysis/figure_scripts/:/home/scripts -v ~/Downloads/SCFA-Analysis-DATA/data/:/home/data -w /home scfa_analysis:rstudio```
+    ```docker run --rm -it -p 8787:8787 -e PASSWORD=yourpasswordhere -v ~/Downloads/SCFA-Analysis/figure_scripts/:/home/scripts -v ~/Downloads/SCFA-Analysis-DATA/data/:/home/data -w /home aoliver44/scfa_analysis:rstudio```
 
 2. navigate to http://localhost:8787/ in a browser window
 3. log into the Rstudio local server
