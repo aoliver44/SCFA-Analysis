@@ -12,7 +12,7 @@ ________________________________________
 _________________________________________________
 - A docker container for analysis in R. Docker must be installed to run. These images were built and run on Docker v4.26.1. To build these images, make sure you have cloned the git repo, and are inside that directory: 
 ```
-git clone aoliver44/SCFA-Analysis
+git clone https://github.com/aoliver44/SCFA-Analysis.git
 cd SCFA-Analysis
 docker build -t scfa_analysis:rstudio .
 ```
@@ -32,7 +32,7 @@ These commands will generate figures in a folder called ```~/Downloads/SCFA-Anal
 ```
 cd ~/Downloads # if you download elsewhere, change throughout
 git clone SCFA-Analysis-DATA ## PRIVATE REPO - For access, see instructions above
-git clone aoliver44/SCFA-Analysis
+git clone https://github.com/aoliver44/SCFA-Analysis.git
 ```
 **Generate a figure**
 ```
