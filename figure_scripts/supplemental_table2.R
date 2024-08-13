@@ -28,10 +28,31 @@ pd_carbs <- readr::read_delim("/home/data/qiime1_alphadiv_carb.txt") %>%
   dplyr::select(., subject_id, PD_carbs)
 pd_fiber <- readr::read_delim("/home/data/qiime1_alphadiv_fiber.txt") %>% 
   dplyr::select(., subject_id, PD_fiber)
-anthropometrics <- read.csv("/home/data/FL100_age_sex_bmi.csv")
+anthropometrics <- readr::read_csv("/home/data/FL100_age_sex_bmi.csv")
 stool_vars <- readr::read_delim("/home/data/FL100_stool_variables.txt") %>%
   dplyr::select(., subject_id, st_wt, fecal_calprotectin, StoolConsistencyClass, bristol_num)
 ethnicity <- readr::read_csv("/home/data/DEXA_ethnicities04272020.csv") #%>% dplyr::filter(., Ethnicity %in% c("White", "Hispanic")) %>% droplevels()
+
+## This makes a small change to the overall numbers (no change in significance).
+## For some really dumb reason, not all subject_ids were the same col type.
+## so when they merged, they didnt merge completely. I lost about 5 individuals
+## that i should have had in the analyses if all subject_ids were the same col_type
+
+# hei_ffq <- readr::read_csv("/home/data/HEI FFQ_scores_12072021.csv", col_types = c("subject_id" = "factor")) %>%
+#   dplyr::select(., subject_id, hei_ffq_totalscore)
+# hei_asa <- readr::read_delim("/home/data/FL100_HEI_n378.txt", col_types = c("subject_id" = "factor")) %>%
+#   dplyr::select(., subject_id, hei_asa24_totalscore)
+# asa24_fiber <- readr::read_delim("/home/data/ASA24_average_fiber_summary_variables.txt", col_types = c("subject_id" = "factor"))
+# ffq_fiber_vars <- readr::read_csv("/home/data/fibergroups_fl100cohort.csv", col_types = c("subject_id" = "factor")) %>% 
+#   dplyr::select(., subject_id, fibe_per1000_ffq, dt_fibe, dt_fiber_sol)
+# pd_carbs <- readr::read_delim("/home/data/qiime1_alphadiv_carb.txt", col_types = c("subject_id" = "factor")) %>% 
+#   dplyr::select(., subject_id, PD_carbs)
+# pd_fiber <- readr::read_delim("/home/data/qiime1_alphadiv_fiber.txt", col_types = c("subject_id" = "factor")) %>% 
+#   dplyr::select(., subject_id, PD_fiber)
+# anthropometrics <- readr::read_csv("/home/data/FL100_age_sex_bmi.csv", col_types = c("subject_id" = "factor"))
+# stool_vars <- readr::read_delim("/home/data/FL100_stool_variables.txt", col_types = c("subject_id" = "factor")) %>%
+#   dplyr::select(., subject_id, st_wt, fecal_calprotectin, StoolConsistencyClass, bristol_num)
+# ethnicity <- readr::read_csv("/home/data/DEXA_ethnicities04272020.csv", col_types = c("subject_id" = "factor")) #%>% dplyr::filter(., Ethnicity %in% c("White", "Hispanic")) %>% droplevels()
 
 ## Make Supp Table 2 ===========================================================
 
