@@ -57,8 +57,8 @@ metaphlan_faith_pd_scfa <- merge(anthropometrics, stool_vars, by = "subject_id")
 ## conduct partial correlations ================================================
 
 ## fecal SCFAs
-PartialCorrelationNew(scfas = "fecal", independent = "PD", df = metaphlan_faith_pd_scfa, remove_outliers = F)
-PartialCorrelationNew(scfas = "serum", independent = "PD", df = metaphlan_faith_pd_scfa, remove_outliers = F)
+#PartialCorrelationNew(scfas = "fecal", independent = "PD", df = metaphlan_faith_pd_scfa, remove_outliers = F)
+#PartialCorrelationNew(scfas = "serum", independent = "PD", df = metaphlan_faith_pd_scfa, remove_outliers = F)
 
 ## plot fecal SCFAs ~ PD =======================================================
 
